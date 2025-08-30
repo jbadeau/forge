@@ -1,0 +1,29 @@
+{
+  "name": "utils",
+  "sourceRoot": "libs/utils/src", 
+  "projectType": "library",
+  "tags": ["scope:shared", "type:util"],
+  "targets": {
+    "build": {
+      "executor": "tsc",
+      "outputs": ["{workspaceRoot}/dist/libs/utils"],
+      "options": {
+        "main": "libs/utils/src/index.ts",
+        "tsConfig": "libs/utils/tsconfig.lib.json"
+      }
+    },
+    "test": {
+      "executor": "jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/utils"],
+      "options": {
+        "jestConfig": "libs/utils/jest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "eslint",
+      "options": {
+        "lintFilePatterns": ["libs/utils/**/*.ts"]
+      }
+    }
+  }
+}

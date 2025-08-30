@@ -1,0 +1,46 @@
+{
+  "name": "api",
+  "sourceRoot": "apps/api/src",
+  "projectType": "application",
+  "tags": ["scope:api", "type:app"],
+  "targets": {
+    "build": {
+      "executor": "tsc",
+      "outputs": ["{workspaceRoot}/dist/apps/api"],
+      "options": {
+        "main": "apps/api/src/main.ts",
+        "tsConfig": "apps/api/tsconfig.app.json",
+        "outputPath": "dist/apps/api"
+      }
+    },
+    "serve": {
+      "executor": "node",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "api:build",
+        "port": 8080
+      }
+    },
+    "test": {
+      "executor": "jest", 
+      "outputs": ["{workspaceRoot}/coverage/apps/api"],
+      "options": {
+        "jestConfig": "apps/api/jest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "eslint",
+      "options": {
+        "lintFilePatterns": ["apps/api/**/*.ts"]
+      }
+    },
+    "docker-build": {
+      "executor": "docker",
+      "dependsOn": ["build"],
+      "options": {
+        "dockerfile": "apps/api/Dockerfile",
+        "context": "."
+      }
+    }
+  }
+}

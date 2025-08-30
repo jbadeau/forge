@@ -1,0 +1,23 @@
+[tools]
+java = "latest"
+maven = "latest"
+
+[tasks.forge]
+description = "Run the Forge CLI"
+run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"$@\""
+
+[tasks."forge:build"]
+description = "Run forge build for all projects"
+run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"--target=build\""
+
+[tasks."forge:test"]
+description = "Run forge test for all projects"
+run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"--target=test\""
+
+[tasks."forge:lint"]
+description = "Run forge lint for all projects"
+run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"--target=lint\""
+
+[tasks."forge:dry-run"]
+description = "Run forge build in dry-run mode"
+run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"--target=build --dry-run\""

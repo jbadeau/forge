@@ -1,0 +1,30 @@
+{
+  "name": "ui",
+  "sourceRoot": "libs/ui/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:ui"],
+  "targets": {
+    "build": {
+      "executor": "esbuild",
+      "outputs": ["{workspaceRoot}/dist/libs/ui"],
+      "options": {
+        "main": "libs/ui/src/index.ts",
+        "tsConfig": "libs/ui/tsconfig.lib.json"
+      }
+    },
+    "test": {
+      "executor": "jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/ui"],
+      "options": {
+        "jestConfig": "libs/ui/jest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "eslint",
+      "outputs": ["{workspaceRoot}/reports/libs/ui/eslint.json"],
+      "options": {
+        "lintFilePatterns": ["libs/ui/**/*.{ts,tsx}"]
+      }
+    }
+  }
+}

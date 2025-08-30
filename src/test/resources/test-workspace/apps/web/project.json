@@ -1,0 +1,56 @@
+{
+  "name": "web",
+  "sourceRoot": "apps/web/src",
+  "projectType": "application", 
+  "tags": ["scope:web", "type:app"],
+  "targets": {
+    "build": {
+      "executor": "webpack",
+      "outputs": ["{workspaceRoot}/dist/apps/web"],
+      "options": {
+        "outputPath": "dist/apps/web",
+        "index": "apps/web/src/index.html",
+        "main": "apps/web/src/main.ts",
+        "tsConfig": "apps/web/tsconfig.app.json"
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false
+        },
+        "development": {
+          "optimization": false,
+          "sourceMap": true
+        }
+      }
+    },
+    "serve": {
+      "executor": "dev-server",
+      "options": {
+        "buildTarget": "web:build",
+        "port": 3000
+      }
+    },
+    "test": {
+      "executor": "jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/web"],
+      "options": {
+        "jestConfig": "apps/web/jest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "eslint",
+      "options": {
+        "lintFilePatterns": ["apps/web/**/*.{ts,tsx,html}"]
+      }
+    },
+    "e2e": {
+      "executor": "cypress",
+      "options": {
+        "cypressConfig": "apps/web-e2e/cypress.config.ts",
+        "devServerTarget": "web:serve"
+      }
+    }
+  }
+}
