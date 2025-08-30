@@ -1,0 +1,25 @@
+{
+  "name": "react-app",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.js",
+  "scripts": {
+    "build": "react-scripts build",
+    "start": "react-scripts start",
+    "test": "react-scripts test",
+    "lint": "eslint src/**/*.{js,jsx}",
+    "dev": "react-scripts start"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "react-scripts": "^5.0.1",
+    "eslint": "^8.0.0"
+  },
+  "keywords": ["react", "frontend"],
+  "nx": {
+    "tags": ["scope:frontend", "type:app"]
+  }
+}

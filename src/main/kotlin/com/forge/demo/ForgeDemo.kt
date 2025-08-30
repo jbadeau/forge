@@ -2,6 +2,7 @@ package com.forge.demo
 
 import com.forge.discovery.ProjectDiscovery
 import com.forge.execution.TaskGraphBuilder
+import com.forge.cli.SimpleShowCommand
 import java.nio.file.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.exists
@@ -13,9 +14,19 @@ fun main(args: Array<String>) {
     // Parse command line arguments
     val target = args.find { it.startsWith("--target=") }?.substringAfter("=") ?: "build"
     val dryRun = args.contains("--dry-run")
+    val showProject = args.find { it.startsWith("--show=") }?.substringAfter("=")
+    val showJson = args.contains("--json")
     
     try {
         val workspaceRoot = findWorkspaceRoot()
+        
+        // Handle show project command
+        if (showProject != null) {
+            println("📍 Workspace: $workspaceRoot")
+            println()
+            SimpleShowCommand.showProject(showProject, showJson)
+            return
+        }
         
         println("📍 Workspace: $workspaceRoot")
         println("🎯 Target: $target")

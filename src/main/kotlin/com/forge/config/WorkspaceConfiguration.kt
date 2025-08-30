@@ -33,6 +33,19 @@ data class WorkspaceConfiguration(
     
     fun hasNamedInputs(inputName: String): Boolean = 
         namedInputs.containsKey(inputName)
+    
+    fun toMap(): Map<String, Any> = mapOf(
+        "version" to version,
+        "targetDefaults" to targetDefaults,
+        "namedInputs" to namedInputs,
+        "plugins" to plugins,
+        "generators" to generators,
+        "tasksRunnerOptions" to tasksRunnerOptions,
+        "defaultProject" to (defaultProject ?: ""),
+        "workspaceLayout" to workspaceLayout,
+        "cli" to cli,
+        "affected" to affected
+    )
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)

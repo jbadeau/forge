@@ -9,6 +9,10 @@ import com.forge.core.ProjectGraph
 import com.forge.core.ProjectGraphDependency
 import com.forge.core.ProjectGraphNode
 import com.forge.core.DependencyType
+import com.forge.inference.InferenceEngine
+import com.forge.inference.plugins.PackageJsonPlugin
+import com.forge.inference.plugins.MavenPlugin
+import com.forge.inference.plugins.DockerPlugin
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
@@ -17,10 +21,16 @@ import kotlin.io.path.*
 
 class ProjectDiscovery(
     private val workspaceRoot: Path,
-    private val plugins: List<DiscoveryPlugin> = emptyList()
+    private val plugins: List<DiscoveryPlugin> = emptyList(),
+    private val enableInference: Boolean = true
 ) {
     private val logger = LoggerFactory.getLogger(ProjectDiscovery::class.java)
     private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
+    private val inferenceEngine = InferenceEngine().apply {
+        registerPlugin(PackageJsonPlugin())
+        registerPlugin(MavenPlugin())
+        registerPlugin(DockerPlugin())
+    }
     
     fun discoverProjects(): ProjectGraph {
         logger.info("Starting project discovery in workspace: $workspaceRoot")
@@ -31,7 +41,14 @@ class ProjectDiscovery(
         // Discover projects via explicit project.json files
         projects.putAll(discoverExplicitProjects())
         
-        // Discover projects via plugins (package.json, etc.)
+        // Discover projects via inference plugins (package.json, etc.)
+        if (enableInference) {
+            val inferenceResult = inferenceEngine.runInference(workspaceRoot, workspaceConfig.toMap())
+            projects.putAll(inferenceResult.projects)
+            logger.info("Inferred ${inferenceResult.projects.size} projects via inference plugins")
+        }
+        
+        // Discover projects via legacy plugins
         plugins.forEach { plugin ->
             projects.putAll(plugin.discoverProjects(workspaceRoot))
         }

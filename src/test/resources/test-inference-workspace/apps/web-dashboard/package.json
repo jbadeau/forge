@@ -1,0 +1,23 @@
+{
+  "name": "web-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "start": "vite preview",
+    "test": "vitest",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "vite": "^4.4.0",
+    "vitest": "^0.34.0",
+    "eslint": "^8.0.0"
+  },
+  "nx": {
+    "tags": ["scope:frontend", "type:app"]
+  }
+}
