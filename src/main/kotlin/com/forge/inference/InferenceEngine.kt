@@ -1,5 +1,6 @@
 package com.forge.inference
 
+import com.forge.config.PluginConfiguration
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -20,7 +21,8 @@ class InferenceEngine(
      */
     fun runInference(
         workspaceRoot: Path,
-        nxJsonConfiguration: Map<String, Any> = emptyMap()
+        nxJsonConfiguration: Map<String, Any> = emptyMap(),
+        pluginConfigurations: List<PluginConfiguration> = emptyList()
     ): CreateNodesResult {
         val context = CreateNodesContext(
             workspaceRoot = workspaceRoot,
@@ -38,15 +40,37 @@ class InferenceEngine(
                 if (matchingFiles.isNotEmpty()) {
                     logger.debug("Found ${matchingFiles.size} files matching pattern '${plugin.createNodesPattern}'")
                     
+                    // Find plugin configuration options
+                    val pluginConfig = pluginConfigurations.find { it.plugin == plugin.name }
+                    val options = if (pluginConfig != null) {
+                        mergePluginOptions(plugin, pluginConfig.options)
+                    } else {
+                        plugin.defaultOptions
+                    }
+                    
                     @Suppress("UNCHECKED_CAST")
                     val result = (plugin as InferencePlugin<Any>).createNodes(
                         matchingFiles,
-                        plugin.defaultOptions,
+                        options,
                         context
                     )
                     
-                    // Merge results
-                    allProjects.putAll(result.projects)
+                    // Merge results - properly merge projects with same names
+                    result.projects.forEach { (projectName, projectConfig) ->
+                        if (allProjects.containsKey(projectName)) {
+                            // Merge with existing project
+                            val existing = allProjects[projectName]!!
+                            val mergedTargets = existing.targets + projectConfig.targets
+                            val mergedTags = (existing.tags + projectConfig.tags).distinct()
+                            allProjects[projectName] = existing.copy(
+                                targets = mergedTargets,
+                                tags = mergedTags
+                            )
+                            logger.debug("Merged plugin results for project '$projectName'")
+                        } else {
+                            allProjects[projectName] = projectConfig
+                        }
+                    }
                     allExternalNodes.putAll(result.externalNodes)
                     
                     logger.info("Plugin '${plugin.name}' inferred ${result.projects.size} projects")
@@ -96,4 +120,44 @@ class InferenceEngine(
      * Get all registered plugins
      */
     fun getPlugins(): List<InferencePlugin<*>> = pluginRegistry.getPlugins()
+    
+    /**
+     * Merge plugin configuration options with default options
+     */
+    private fun mergePluginOptions(plugin: InferencePlugin<*>, configOptions: Map<String, Any>): Any? {
+        return when (plugin.name) {
+            "@forge/maven" -> {
+                val defaults = plugin.defaultOptions as? com.forge.inference.plugins.MavenPluginOptions 
+                    ?: com.forge.inference.plugins.MavenPluginOptions()
+                com.forge.inference.plugins.MavenPluginOptions(
+                    buildTargetName = configOptions["buildTargetName"] as? String ?: defaults.buildTargetName,
+                    testTargetName = configOptions["testTargetName"] as? String ?: defaults.testTargetName,
+                    lintTargetName = configOptions["lintTargetName"] as? String ?: defaults.lintTargetName,
+                    packageTargetName = configOptions["packageTargetName"] as? String ?: defaults.packageTargetName
+                )
+            }
+            "@forge/package-json" -> {
+                val defaults = plugin.defaultOptions as? com.forge.inference.plugins.PackageJsonPluginOptions 
+                    ?: com.forge.inference.plugins.PackageJsonPluginOptions()
+                com.forge.inference.plugins.PackageJsonPluginOptions(
+                    buildTargetName = configOptions["buildTargetName"] as? String ?: defaults.buildTargetName,
+                    testTargetName = configOptions["testTargetName"] as? String ?: defaults.testTargetName,
+                    lintTargetName = configOptions["lintTargetName"] as? String ?: defaults.lintTargetName,
+                    inferBuildFromScript = configOptions["inferBuildFromScript"] as? Boolean ?: defaults.inferBuildFromScript,
+                    inferTestFromScript = configOptions["inferTestFromScript"] as? Boolean ?: defaults.inferTestFromScript,
+                    inferLintFromScript = configOptions["inferLintFromScript"] as? Boolean ?: defaults.inferLintFromScript
+                )
+            }
+            "@forge/docker" -> {
+                val defaults = plugin.defaultOptions as? com.forge.inference.plugins.DockerPluginOptions 
+                    ?: com.forge.inference.plugins.DockerPluginOptions()
+                com.forge.inference.plugins.DockerPluginOptions(
+                    buildTargetName = configOptions["buildTargetName"] as? String ?: defaults.buildTargetName,
+                    runTargetName = configOptions["runTargetName"] as? String ?: defaults.runTargetName,
+                    pushTargetName = configOptions["pushTargetName"] as? String ?: defaults.pushTargetName
+                )
+            }
+            else -> plugin.defaultOptions
+        }
+    }
 }

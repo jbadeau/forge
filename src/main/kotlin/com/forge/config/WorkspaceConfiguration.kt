@@ -11,7 +11,7 @@ data class WorkspaceConfiguration(
     val targetDefaults: Map<String, TargetConfiguration> = emptyMap(),
     @JsonProperty("namedInputs")
     val namedInputs: Map<String, List<String>> = emptyMap(),
-    val plugins: List<String> = emptyList(),
+    val plugins: List<PluginConfiguration> = emptyList(),
     val generators: Map<String, Any> = emptyMap(),
     val tasksRunnerOptions: Map<String, Any> = emptyMap(),
     @JsonProperty("defaultProject")
@@ -70,3 +70,21 @@ data class AffectedConfiguration(
     @JsonProperty("defaultBase")
     val defaultBase: String = "main"
 )
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class PluginConfiguration(
+    val plugin: String,
+    val options: Map<String, Any> = emptyMap()
+) {
+    fun getOption(key: String): Any? = options[key]
+    
+    fun getStringOption(key: String, default: String? = null): String? = 
+        options[key] as? String ?: default
+    
+    fun getBooleanOption(key: String, default: Boolean = false): Boolean = 
+        options[key] as? Boolean ?: default
+    
+    fun getIntOption(key: String, default: Int = 0): Int = 
+        options[key] as? Int ?: default
+}
+

@@ -11,6 +11,24 @@
     }
   },
   "plugins": [
-    "@forge/package-json"
+    {
+      "plugin": "@forge/package-json"
+    },
+    {
+      "plugin": "@forge/maven",
+      "options": {
+        "buildTargetName": "maven-build",
+        "testTargetName": "maven-test",
+        "packageTargetName": "maven-package"
+      }
+    },
+    {
+      "plugin": "@forge/docker",
+      "options": {
+        "buildTargetName": "container-build",
+        "runTargetName": "container-run",
+        "pushTargetName": "container-push"
+      }
+    }
   ]
 }

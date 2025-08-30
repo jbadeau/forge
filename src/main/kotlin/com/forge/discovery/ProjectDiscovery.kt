@@ -43,7 +43,11 @@ class ProjectDiscovery(
         
         // Discover projects via inference plugins (package.json, etc.)
         if (enableInference) {
-            val inferenceResult = inferenceEngine.runInference(workspaceRoot, workspaceConfig.toMap())
+            val inferenceResult = inferenceEngine.runInference(
+                workspaceRoot, 
+                workspaceConfig.toMap(),
+                workspaceConfig.plugins
+            )
             projects.putAll(inferenceResult.projects)
             logger.info("Inferred ${inferenceResult.projects.size} projects via inference plugins")
         }
