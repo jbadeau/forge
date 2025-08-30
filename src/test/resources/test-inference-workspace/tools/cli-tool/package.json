@@ -7,6 +7,9 @@
     "test": "jest --coverage",
     "lint": "eslint src/**/*.js"
   },
+  "dependencies": {
+    "@my-org/utils-lib": "^1.0.0"
+  },
   "devDependencies": {
     "webpack": "^5.0.0",
     "jest": "^29.0.0",

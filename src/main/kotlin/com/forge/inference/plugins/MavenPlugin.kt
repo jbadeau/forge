@@ -6,6 +6,8 @@ import com.forge.core.ProjectConfiguration
 import com.forge.core.TargetConfiguration
 import com.forge.inference.CreateNodesContext
 import com.forge.inference.CreateNodesResult
+import com.forge.inference.CreateDependenciesContext
+import com.forge.inference.RawProjectGraphDependency
 import com.forge.inference.InferencePlugin
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -31,6 +33,10 @@ class MavenPlugin : InferencePlugin<MavenPluginOptions> {
     private val xmlMapper = XmlMapper()
     
     override val defaultOptions = MavenPluginOptions()
+    
+    override val createDependencies = { options: MavenPluginOptions?, context: CreateDependenciesContext ->
+        createMavenDependencies(options ?: defaultOptions, context)
+    }
     
     override val createNodes = { configFiles: List<String>, options: MavenPluginOptions?, context: CreateNodesContext ->
         val opts = options ?: defaultOptions
@@ -205,5 +211,114 @@ class MavenPlugin : InferencePlugin<MavenPluginOptions> {
         return pomString.contains("checkstyle") || 
                pomString.contains("spotless") ||
                pomString.contains("maven-pmd-plugin")
+    }
+    
+    private fun createMavenDependencies(
+        options: MavenPluginOptions,
+        context: CreateDependenciesContext
+    ): List<RawProjectGraphDependency> {
+        val dependencies = mutableListOf<RawProjectGraphDependency>()
+        
+        // Create map of groupId:artifactId -> project name for quick lookup
+        val projectLookup = context.projects.mapNotNull { (projectName, projectConfig) ->
+            val pomPath = context.workspaceRoot.resolve(projectConfig.root).resolve("pom.xml")
+            if (pomPath.exists()) {
+                try {
+                    val pomContent = pomPath.readText()
+                    val pomXml = xmlMapper.readValue(pomContent, Map::class.java) as Map<String, Any>
+                    val groupId = pomXml["groupId"] as? String
+                    val artifactId = pomXml["artifactId"] as? String
+                    
+                    if (groupId != null && artifactId != null) {
+                        "$groupId:$artifactId" to projectName
+                    } else null
+                } catch (e: Exception) {
+                    logger.warn("Failed to parse POM for dependency lookup: ${pomPath}")
+                    null
+                }
+            } else null
+        }.toMap()
+        
+        // Process each Maven project to find dependencies
+        context.projects.values.forEach { project ->
+            val pomPath = context.workspaceRoot.resolve(project.root).resolve("pom.xml")
+            if (pomPath.exists()) {
+                try {
+                    val projectDependencies = parsePomDependencies(pomPath, project.name, projectLookup)
+                    dependencies.addAll(projectDependencies)
+                } catch (e: Exception) {
+                    logger.warn("Failed to parse dependencies from ${pomPath}: ${e.message}")
+                }
+            }
+        }
+        
+        return dependencies
+    }
+    
+    private fun parsePomDependencies(
+        pomPath: Path,
+        sourceProjectName: String,
+        projectLookup: Map<String, String>
+    ): List<RawProjectGraphDependency> {
+        val dependencies = mutableListOf<RawProjectGraphDependency>()
+        
+        try {
+            val pomContent = pomPath.readText()
+            val pomXml = xmlMapper.readValue(pomContent, Map::class.java) as Map<String, Any>
+            
+            // Extract dependencies section
+            val dependenciesSection = pomXml["dependencies"] as? Map<*, *>
+            if (dependenciesSection != null) {
+                val dependencyList = dependenciesSection["dependency"]
+                
+                // Handle both single dependency and list of dependencies
+                val deps = when (dependencyList) {
+                    is List<*> -> dependencyList
+                    is Map<*, *> -> listOf(dependencyList)
+                    else -> emptyList()
+                }
+                
+                deps.forEach { dep ->
+                    if (dep is Map<*, *>) {
+                        val groupId = dep["groupId"] as? String
+                        val artifactId = dep["artifactId"] as? String
+                        val scope = dep["scope"] as? String ?: "compile"
+                        
+                        if (groupId != null && artifactId != null) {
+                            val dependencyKey = "$groupId:$artifactId"
+                            val targetProject = projectLookup[dependencyKey]
+                            
+                            if (targetProject != null) {
+                                // This is an internal project dependency
+                                dependencies.add(
+                                    RawProjectGraphDependency(
+                                        source = sourceProjectName,
+                                        target = targetProject,
+                                        type = mapMavenScopeToType(scope),
+                                        sourceFile = pomPath.toString()
+                                    )
+                                )
+                                logger.debug("Found internal dependency: $sourceProjectName -> $targetProject ($scope)")
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            logger.warn("Error parsing POM dependencies from ${pomPath}: ${e.message}")
+        }
+        
+        return dependencies
+    }
+    
+    private fun mapMavenScopeToType(scope: String): String {
+        return when (scope.lowercase()) {
+            "compile" -> "static"
+            "runtime" -> "static" 
+            "provided" -> "static"
+            "test" -> "static"
+            "import" -> "static"
+            else -> "static"
+        }
     }
 }

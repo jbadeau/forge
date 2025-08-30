@@ -35,6 +35,7 @@ object SimpleShowCommand {
             
             if (json) {
                 // Output JSON format (similar to nx show project --json)
+                val dependencies = projectGraph.getDependencies(project.name)
                 val projectData = mapOf(
                     "name" to project.name,
                     "root" to project.data.root,
@@ -52,6 +53,12 @@ object SimpleShowCommand {
                             "outputs" to target.outputs,
                             "cache" to target.cache,
                             "parallelism" to target.parallelism
+                        )
+                    },
+                    "dependencies" to dependencies.map { dep ->
+                        mapOf(
+                            "target" to dep.target,
+                            "type" to dep.type.toString().lowercase()
                         )
                     }
                 )

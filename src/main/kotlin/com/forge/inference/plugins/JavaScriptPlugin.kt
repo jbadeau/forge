@@ -6,12 +6,14 @@ import com.forge.core.ProjectConfiguration
 import com.forge.core.TargetConfiguration
 import com.forge.inference.CreateNodesContext
 import com.forge.inference.CreateNodesResult
+import com.forge.inference.CreateDependenciesContext
+import com.forge.inference.RawProjectGraphDependency
 import com.forge.inference.InferencePlugin
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.*
 
-data class PackageJsonPluginOptions(
+data class JavaScriptPluginOptions(
     val buildTargetName: String = "build",
     val testTargetName: String = "test",
     val lintTargetName: String = "lint",
@@ -20,17 +22,21 @@ data class PackageJsonPluginOptions(
     val inferLintFromScript: Boolean = true
 )
 
-class PackageJsonPlugin : InferencePlugin<PackageJsonPluginOptions> {
+class JavaScriptPlugin : InferencePlugin<JavaScriptPluginOptions> {
     
-    override val name: String = "@forge/package-json"
+    override val name: String = "@forge/js"
     override val createNodesPattern: String = "**/package.json"
     
-    private val logger = LoggerFactory.getLogger(PackageJsonPlugin::class.java)
+    private val logger = LoggerFactory.getLogger(JavaScriptPlugin::class.java)
     private val objectMapper = ObjectMapper()
     
-    override val defaultOptions = PackageJsonPluginOptions()
+    override val defaultOptions = JavaScriptPluginOptions()
     
-    override val createNodes = { configFiles: List<String>, options: PackageJsonPluginOptions?, context: CreateNodesContext ->
+    override val createDependencies = { options: JavaScriptPluginOptions?, context: CreateDependenciesContext ->
+        createPackageJsonDependencies(options ?: defaultOptions, context)
+    }
+    
+    override val createNodes = { configFiles: List<String>, options: JavaScriptPluginOptions?, context: CreateNodesContext ->
         val opts = options ?: defaultOptions
         val projects = mutableMapOf<String, ProjectConfiguration>()
         
@@ -54,7 +60,7 @@ class PackageJsonPlugin : InferencePlugin<PackageJsonPluginOptions> {
     
     private fun inferProjectFromPackageJson(
         packageJsonPath: Path,
-        options: PackageJsonPluginOptions,
+        options: JavaScriptPluginOptions,
         context: CreateNodesContext
     ): ProjectConfiguration? {
         val packageJsonContent = packageJsonPath.readText()
@@ -119,7 +125,7 @@ class PackageJsonPlugin : InferencePlugin<PackageJsonPluginOptions> {
     
     private fun inferTargets(
         packageJson: Map<String, Any>,
-        options: PackageJsonPluginOptions,
+        options: JavaScriptPluginOptions,
         projectRoot: String
     ): Map<String, TargetConfiguration> {
         val targets = mutableMapOf<String, TargetConfiguration>()
@@ -188,5 +194,118 @@ class PackageJsonPlugin : InferencePlugin<PackageJsonPluginOptions> {
         }
         
         return targets
+    }
+    
+    private fun createPackageJsonDependencies(
+        options: JavaScriptPluginOptions,
+        context: CreateDependenciesContext
+    ): List<RawProjectGraphDependency> {
+        val dependencies = mutableListOf<RawProjectGraphDependency>()
+        
+        // Create map of package name -> project name for quick lookup
+        val packageNameToProjectName = mutableMapOf<String, String>()
+        
+        context.projects.forEach { (projectName, projectConfig) ->
+            val packageJsonPath = context.workspaceRoot.resolve(projectConfig.root).resolve("package.json")
+            if (packageJsonPath.exists()) {
+                try {
+                    val packageJson: Map<String, Any> = objectMapper.readValue(packageJsonPath.toFile())
+                    val packageName = packageJson["name"] as? String
+                    
+                    if (packageName != null) {
+                        packageNameToProjectName[packageName] = projectName
+                        logger.debug("Mapped package '$packageName' to project '$projectName'")
+                    }
+                } catch (e: Exception) {
+                    logger.warn("Failed to parse package.json for dependency lookup: ${packageJsonPath}")
+                }
+            }
+        }
+        
+        // Process each Node.js project to find internal dependencies
+        context.projects.values.forEach { project ->
+            val packageJsonPath = context.workspaceRoot.resolve(project.root).resolve("package.json")
+            if (packageJsonPath.exists()) {
+                try {
+                    val projectDependencies = parsePackageJsonDependencies(
+                        packageJsonPath, 
+                        project.name, 
+                        packageNameToProjectName
+                    )
+                    dependencies.addAll(projectDependencies)
+                } catch (e: Exception) {
+                    logger.warn("Failed to parse dependencies from ${packageJsonPath}: ${e.message}")
+                }
+            }
+        }
+        
+        return dependencies
+    }
+    
+    private fun parsePackageJsonDependencies(
+        packageJsonPath: Path,
+        sourceProjectName: String,
+        packageNameToProjectName: Map<String, String>
+    ): List<RawProjectGraphDependency> {
+        val dependencies = mutableListOf<RawProjectGraphDependency>()
+        
+        try {
+            val packageJson: Map<String, Any> = objectMapper.readValue(packageJsonPath.toFile())
+            
+            // Process regular dependencies
+            val deps = packageJson["dependencies"] as? Map<String, String> ?: emptyMap()
+            deps.keys.forEach { depName ->
+                val targetProject = packageNameToProjectName[depName]
+                if (targetProject != null) {
+                    dependencies.add(
+                        RawProjectGraphDependency(
+                            source = sourceProjectName,
+                            target = targetProject,
+                            type = "static",
+                            sourceFile = packageJsonPath.toString()
+                        )
+                    )
+                    logger.debug("Found internal dependency: $sourceProjectName -> $targetProject (runtime)")
+                }
+            }
+            
+            // Process dev dependencies (could be marked as different type)
+            val devDeps = packageJson["devDependencies"] as? Map<String, String> ?: emptyMap()
+            devDeps.keys.forEach { depName ->
+                val targetProject = packageNameToProjectName[depName]
+                if (targetProject != null) {
+                    dependencies.add(
+                        RawProjectGraphDependency(
+                            source = sourceProjectName,
+                            target = targetProject,
+                            type = "static", // Could use "implicit" for dev deps if needed
+                            sourceFile = packageJsonPath.toString()
+                        )
+                    )
+                    logger.debug("Found internal dev dependency: $sourceProjectName -> $targetProject (dev)")
+                }
+            }
+            
+            // Process peer dependencies
+            val peerDeps = packageJson["peerDependencies"] as? Map<String, String> ?: emptyMap()
+            peerDeps.keys.forEach { depName ->
+                val targetProject = packageNameToProjectName[depName]
+                if (targetProject != null) {
+                    dependencies.add(
+                        RawProjectGraphDependency(
+                            source = sourceProjectName,
+                            target = targetProject,
+                            type = "static",
+                            sourceFile = packageJsonPath.toString()
+                        )
+                    )
+                    logger.debug("Found internal peer dependency: $sourceProjectName -> $targetProject (peer)")
+                }
+            }
+        } catch (e: Exception) {
+            logger.warn("Error parsing package.json dependencies from ${packageJsonPath}: ${e.message}")
+        }
+        
+        return dependencies
     }
 }

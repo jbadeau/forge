@@ -10,9 +10,11 @@ import com.forge.core.ProjectGraphDependency
 import com.forge.core.ProjectGraphNode
 import com.forge.core.DependencyType
 import com.forge.inference.InferenceEngine
-import com.forge.inference.plugins.PackageJsonPlugin
+import com.forge.inference.InferenceResult
+import com.forge.inference.plugins.JavaScriptPlugin
 import com.forge.inference.plugins.MavenPlugin
 import com.forge.inference.plugins.DockerPlugin
+import com.forge.inference.plugins.GoPlugin
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
@@ -27,9 +29,10 @@ class ProjectDiscovery(
     private val logger = LoggerFactory.getLogger(ProjectDiscovery::class.java)
     private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
     private val inferenceEngine = InferenceEngine().apply {
-        registerPlugin(PackageJsonPlugin())
+        registerPlugin(JavaScriptPlugin())
         registerPlugin(MavenPlugin())
         registerPlugin(DockerPlugin())
+        registerPlugin(GoPlugin())
     }
     
     fun discoverProjects(): ProjectGraph {
@@ -42,8 +45,9 @@ class ProjectDiscovery(
         projects.putAll(discoverExplicitProjects())
         
         // Discover projects via inference plugins (package.json, etc.)
+        var inferenceResult: InferenceResult? = null
         if (enableInference) {
-            val inferenceResult = inferenceEngine.runInference(
+            inferenceResult = inferenceEngine.runInference(
                 workspaceRoot, 
                 workspaceConfig.toMap(),
                 workspaceConfig.plugins
@@ -66,7 +70,7 @@ class ProjectDiscovery(
         }
         
         // Build dependency graph
-        val dependencies = buildDependencyGraph(configuredProjects, workspaceConfig)
+        val dependencies = buildDependencyGraph(configuredProjects, workspaceConfig, inferenceResult)
         
         logger.info("Discovered ${nodes.size} projects with ${dependencies.values.sumOf { it.size }} dependencies")
         
@@ -153,12 +157,34 @@ class ProjectDiscovery(
     
     private fun buildDependencyGraph(
         projects: Map<String, ProjectConfiguration>,
-        workspaceConfig: WorkspaceConfiguration
+        workspaceConfig: WorkspaceConfiguration,
+        inferenceResult: InferenceResult?
     ): Map<String, List<ProjectGraphDependency>> {
         val dependencies = mutableMapOf<String, MutableList<ProjectGraphDependency>>()
         
         projects.forEach { (projectName, _) ->
             dependencies[projectName] = mutableListOf()
+        }
+        
+        // Add inferred dependencies from plugin inference
+        inferenceResult?.dependencies?.forEach { rawDep ->
+            if (projects.containsKey(rawDep.source) && projects.containsKey(rawDep.target)) {
+                val dependencyType = when (rawDep.type) {
+                    "static" -> DependencyType.STATIC
+                    "dynamic" -> DependencyType.DYNAMIC
+                    "implicit" -> DependencyType.IMPLICIT
+                    else -> DependencyType.STATIC
+                }
+                
+                dependencies[rawDep.source]?.add(
+                    ProjectGraphDependency(
+                        target = rawDep.target,
+                        source = rawDep.source,
+                        type = dependencyType
+                    )
+                )
+                logger.debug("Added inferred dependency: ${rawDep.source} -> ${rawDep.target} (${rawDep.type})")
+            }
         }
         
         // Let plugins add their own dependencies (e.g., from package.json imports)

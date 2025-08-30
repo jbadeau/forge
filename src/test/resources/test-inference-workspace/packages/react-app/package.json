@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "@my-org/utils-lib": "^1.0.0"
   },
   "devDependencies": {
     "react-scripts": "^5.0.1",

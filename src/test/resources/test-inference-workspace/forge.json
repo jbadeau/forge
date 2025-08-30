@@ -12,7 +12,7 @@
   },
   "plugins": [
     {
-      "plugin": "@forge/package-json"
+      "plugin": "@forge/js"
     },
     {
       "plugin": "@forge/maven",
@@ -28,6 +28,14 @@
         "buildTargetName": "container-build",
         "runTargetName": "container-run",
         "pushTargetName": "container-push"
+      }
+    },
+    {
+      "plugin": "@forge/go",
+      "options": {
+        "buildTargetName": "go-build",
+        "testTargetName": "go-test",
+        "vetTargetName": "go-vet"
       }
     }
   ]

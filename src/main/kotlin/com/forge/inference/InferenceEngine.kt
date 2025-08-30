@@ -23,7 +23,7 @@ class InferenceEngine(
         workspaceRoot: Path,
         nxJsonConfiguration: Map<String, Any> = emptyMap(),
         pluginConfigurations: List<PluginConfiguration> = emptyList()
-    ): CreateNodesResult {
+    ): InferenceResult {
         val context = CreateNodesContext(
             workspaceRoot = workspaceRoot,
             nxJsonConfiguration = nxJsonConfiguration
@@ -31,6 +31,7 @@ class InferenceEngine(
         
         val allProjects = mutableMapOf<String, com.forge.core.ProjectConfiguration>()
         val allExternalNodes = mutableMapOf<String, Any>()
+        val allDependencies = mutableListOf<RawProjectGraphDependency>()
         
         pluginRegistry.getPlugins().forEach { plugin ->
             try {
@@ -80,8 +81,41 @@ class InferenceEngine(
             }
         }
         
-        return CreateNodesResult(
+        // After all projects are inferred, run dependency inference
+        val dependenciesContext = CreateDependenciesContext(
+            workspaceRoot = workspaceRoot,
             projects = allProjects,
+            nxJsonConfiguration = nxJsonConfiguration
+        )
+        
+        pluginRegistry.getPlugins().forEach { plugin ->
+            if (plugin.createDependencies != null) {
+                try {
+                    logger.debug("Running dependency inference for plugin: ${plugin.name}")
+                    val pluginConfig = pluginConfigurations.find { it.plugin == plugin.name }
+                    val options = if (pluginConfig != null) {
+                        mergePluginOptions(plugin, pluginConfig.options)
+                    } else {
+                        plugin.defaultOptions
+                    }
+                    
+                    @Suppress("UNCHECKED_CAST")
+                    val dependencies = (plugin as InferencePlugin<Any>).createDependencies!!(
+                        options,
+                        dependenciesContext
+                    )
+                    
+                    allDependencies.addAll(dependencies)
+                    logger.info("Plugin '${plugin.name}' inferred ${dependencies.size} dependencies")
+                } catch (e: Exception) {
+                    logger.error("Error running dependency inference for plugin '${plugin.name}': ${e.message}", e)
+                }
+            }
+        }
+        
+        return InferenceResult(
+            projects = allProjects,
+            dependencies = allDependencies,
             externalNodes = allExternalNodes
         )
     }
@@ -136,10 +170,10 @@ class InferenceEngine(
                     packageTargetName = configOptions["packageTargetName"] as? String ?: defaults.packageTargetName
                 )
             }
-            "@forge/package-json" -> {
-                val defaults = plugin.defaultOptions as? com.forge.inference.plugins.PackageJsonPluginOptions 
-                    ?: com.forge.inference.plugins.PackageJsonPluginOptions()
-                com.forge.inference.plugins.PackageJsonPluginOptions(
+            "@forge/js" -> {
+                val defaults = plugin.defaultOptions as? com.forge.inference.plugins.JavaScriptPluginOptions 
+                    ?: com.forge.inference.plugins.JavaScriptPluginOptions()
+                com.forge.inference.plugins.JavaScriptPluginOptions(
                     buildTargetName = configOptions["buildTargetName"] as? String ?: defaults.buildTargetName,
                     testTargetName = configOptions["testTargetName"] as? String ?: defaults.testTargetName,
                     lintTargetName = configOptions["lintTargetName"] as? String ?: defaults.lintTargetName,
