@@ -1,0 +1,27 @@
+{
+  "name": "web-app",
+  "version": "1.0.0",
+  "description": "Main web application",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack-dev-server --mode development",
+    "test": "jest",
+    "lint": "eslint src/**/*.js",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@my-org/ui-components": "^1.0.0",
+    "@my-org/utils": "^1.0.0"
+  },
+  "devDependencies": {
+    "webpack": "^5.88.0",
+    "webpack-dev-server": "^4.15.0",
+    "jest": "^29.5.0",
+    "eslint": "^8.45.0"
+  },
+  "keywords": ["react", "web", "frontend"],
+  "author": "Team Frontend"
+}

@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "plugins": [
+    {
+      "plugin": "@forge/js",
+      "options": {
+        "buildTargetName": "build",
+        "testTargetName": "test",
+        "lintTargetName": "lint"
+      }
+    },
+    {
+      "plugin": "@forge/maven",
+      "options": {
+        "buildTargetName": "compile",
+        "testTargetName": "test",
+        "packageTargetName": "package"
+      }
+    },
+    {
+      "plugin": "@forge/docker",
+      "options": {
+        "buildTargetName": "docker-build",
+        "runTargetName": "docker-run",
+        "pushTargetName": "docker-push"
+      }
+    },
+    {
+      "plugin": "@forge/go",
+      "options": {
+        "buildTargetName": "build",
+        "testTargetName": "test"
+      }
+    }
+  ],
+  "targetDefaults": {
+    "build": {
+      "cache": true,
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "cache": true,
+      "dependsOn": ["build"]
+    }
+  }
+}

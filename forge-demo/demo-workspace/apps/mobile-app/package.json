@@ -1,0 +1,27 @@
+{
+  "name": "mobile-app",
+  "version": "1.0.0",
+  "description": "React Native mobile application",
+  "main": "index.js",
+  "scripts": {
+    "build": "react-native bundle --platform android --entry-file index.js --bundle-output dist/main.jsbundle",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint .",
+    "android": "react-native run-android",
+    "ios": "react-native run-ios"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-native": "^0.72.0",
+    "@my-org/ui-components": "^1.0.0",
+    "@my-org/utils": "^1.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "eslint": "^8.45.0",
+    "@react-native/metro-config": "^0.72.0"
+  },
+  "keywords": ["react-native", "mobile", "android", "ios"],
+  "author": "Team Mobile"
+}
