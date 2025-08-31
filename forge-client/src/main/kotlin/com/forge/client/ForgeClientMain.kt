@@ -1,6 +1,7 @@
 package com.forge.client
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
@@ -9,15 +10,13 @@ import com.github.ajalt.clikt.parameters.types.choice
 import java.nio.file.Paths
 import kotlin.system.exitProcess
 
-fun main(args: Array<String>) {
-    ForgeCommand().subcommands(
-        ShowCommand(),
-        RunCommand(),
-        RunManyCommand(),
-        GraphCommand(),
-        DaemonCommand()
-    ).main(args)
-}
+fun main(args: Array<String>) = ForgeCommand().subcommands(
+    ShowCommand(),
+    RunCommand(),
+    RunManyCommand(),
+    GraphCommand(),
+    DaemonCommand()
+).main(args)
 
 class ForgeCommand : CliktCommand(name = "forge") {
     override fun run() = Unit

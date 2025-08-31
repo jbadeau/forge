@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Console appender using STDERR so it doesn't interfere with JSON-RPC on STDOUT -->
+    <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %level %logger{36} -- %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- Root logger -->
+    <root level="INFO">
+        <appender-ref ref="STDERR" />
+    </root>
+    
+    <!-- Daemon-specific logger -->
+    <logger name="com.forge.daemon" level="DEBUG" additivity="false">
+        <appender-ref ref="STDERR" />
+    </logger>
+</configuration>
