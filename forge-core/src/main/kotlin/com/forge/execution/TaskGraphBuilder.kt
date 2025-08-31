@@ -23,21 +23,11 @@ class TaskGraphBuilder(
         val tasks = mutableMapOf<String, Task>()
         val dependencies = mutableMapOf<String, MutableList<String>>()
         
-        // Create tasks for all projects that have the target
+        // Recursively create tasks for all projects that have the target and their dependencies
         projectNames.forEach { projectName ->
             val project = projectGraph.getProject(projectName)
             if (project != null && project.data.hasTarget(targetName)) {
-                val taskId = "$projectName:$targetName"
-                val target = project.data.getTarget(targetName)!!
-                
-                tasks[taskId] = Task(
-                    id = taskId,
-                    projectName = projectName,
-                    targetName = targetName,
-                    target = target,
-                    hash = generateTaskHash(taskId, target, project.data)
-                )
-                dependencies[taskId] = mutableListOf()
+                createTaskWithDependencies(projectName, targetName, project.data, tasks, dependencies)
             }
         }
         
@@ -60,12 +50,51 @@ class TaskGraphBuilder(
         )
     }
     
+    private fun createTaskWithDependencies(
+        projectName: String,
+        targetName: String,
+        projectConfig: ProjectConfiguration,
+        tasks: MutableMap<String, Task>,
+        dependencies: MutableMap<String, MutableList<String>>
+    ) {
+        val taskId = "$projectName:$targetName"
+        
+        // Skip if task already exists
+        if (tasks.containsKey(taskId)) {
+            return
+        }
+        
+        // Check if project has this target
+        if (!projectConfig.hasTarget(targetName)) {
+            return
+        }
+        
+        val target = projectConfig.getTarget(targetName)!!
+        
+        // Create the main task
+        tasks[taskId] = Task(
+            id = taskId,
+            projectName = projectName,
+            targetName = targetName,
+            target = target,
+            hash = generateTaskHash(taskId, target, projectConfig)
+        )
+        dependencies[taskId] = mutableListOf()
+        
+        // Recursively create dependency tasks within the same project
+        target.dependsOn.forEach { depTargetName ->
+            if (projectConfig.hasTarget(depTargetName)) {
+                createTaskWithDependencies(projectName, depTargetName, projectConfig, tasks, dependencies)
+            }
+        }
+    }
+    
     private fun resolveDependencies(
         task: Task,
         allTasks: Map<String, Task>,
         dependencies: MutableMap<String, MutableList<String>>
     ) {
-        val dependsOn = task.target.getDependencies()
+        val dependsOn = task.target.dependsOn
         
         dependsOn.forEach { depString ->
             val resolvedDeps = resolveDependencyString(depString, task, allTasks)
