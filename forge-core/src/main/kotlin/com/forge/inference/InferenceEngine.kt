@@ -1,6 +1,7 @@
 package com.forge.inference
 
-import com.forge.config.PluginConfiguration
+import com.forge.plugin.PluginManager
+import com.forge.plugin.ForgePlugin
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -9,20 +10,19 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.pathString
 
 /**
- * Engine for running inference plugins to discover project configurations
+ * Engine for running ForgePlugins to discover project configurations
  */
 class InferenceEngine(
-    private val pluginRegistry: InferencePluginRegistry = InferencePluginRegistry()
+    private val pluginManager: PluginManager = PluginManager()
 ) {
     private val logger = LoggerFactory.getLogger(InferenceEngine::class.java)
     
     /**
-     * Run inference across all registered plugins for the given workspace
+     * Run inference across all ForgePlugins for the given workspace
      */
     fun runInference(
         workspaceRoot: Path,
-        nxJsonConfiguration: Map<String, Any> = emptyMap(),
-        pluginConfigurations: List<PluginConfiguration> = emptyList()
+        nxJsonConfiguration: Map<String, Any> = emptyMap()
     ): InferenceResult {
         val context = CreateNodesContext(
             workspaceRoot = workspaceRoot,
@@ -33,24 +33,26 @@ class InferenceEngine(
         val allExternalNodes = mutableMapOf<String, Any>()
         val allDependencies = mutableListOf<RawProjectGraphDependency>()
         
-        pluginRegistry.getPlugins().forEach { plugin ->
+        // Load ForgePlugins from workspace configuration
+        val forgePlugins = try {
+            pluginManager.loadPlugins(workspaceRoot)
+        } catch (e: Exception) {
+            logger.warn("Failed to load ForgePlugins, using built-in plugins: ${e.message}")
+            getBuiltInPlugins()
+        }
+        
+        forgePlugins.forEach { plugin ->
             try {
-                logger.debug("Running inference plugin: ${plugin.name}")
-                val matchingFiles = findMatchingFiles(workspaceRoot, plugin.createNodesPattern)
+                logger.debug("Running inference plugin: ${plugin.metadata.id}")
+                val matchingFiles = findMatchingFiles(workspaceRoot, plugin.metadata.createNodesPattern)
                 
                 if (matchingFiles.isNotEmpty()) {
-                    logger.debug("Found ${matchingFiles.size} files matching pattern '${plugin.createNodesPattern}'")
+                    logger.debug("Found ${matchingFiles.size} files matching pattern '${plugin.metadata.createNodesPattern}'")
                     
-                    // Find plugin configuration options
-                    val pluginConfig = pluginConfigurations.find { it.plugin == plugin.name }
-                    val options = if (pluginConfig != null) {
-                        mergePluginOptions(plugin, pluginConfig.options)
-                    } else {
-                        plugin.defaultOptions
-                    }
+                    // Find plugin configuration options from workspace
+                    val options = plugin.defaultOptions
                     
-                    @Suppress("UNCHECKED_CAST")
-                    val result = (plugin as InferencePlugin<Any>).createNodes(
+                    val result = plugin.createNodes(
                         matchingFiles,
                         options,
                         context
@@ -74,10 +76,10 @@ class InferenceEngine(
                     }
                     allExternalNodes.putAll(result.externalNodes)
                     
-                    logger.info("Plugin '${plugin.name}' inferred ${result.projects.size} projects")
+                    logger.info("Plugin '${plugin.metadata.id}' inferred ${result.projects.size} projects")
                 }
             } catch (e: Exception) {
-                logger.error("Error running inference plugin '${plugin.name}': ${e.message}", e)
+                logger.error("Error running inference plugin '${plugin.metadata.id}': ${e.message}", e)
             }
         }
         
@@ -88,28 +90,17 @@ class InferenceEngine(
             nxJsonConfiguration = nxJsonConfiguration
         )
         
-        pluginRegistry.getPlugins().forEach { plugin ->
-            if (plugin.createDependencies != null) {
-                try {
-                    logger.debug("Running dependency inference for plugin: ${plugin.name}")
-                    val pluginConfig = pluginConfigurations.find { it.plugin == plugin.name }
-                    val options = if (pluginConfig != null) {
-                        mergePluginOptions(plugin, pluginConfig.options)
-                    } else {
-                        plugin.defaultOptions
-                    }
-                    
-                    @Suppress("UNCHECKED_CAST")
-                    val dependencies = (plugin as InferencePlugin<Any>).createDependencies!!(
-                        options,
-                        dependenciesContext
-                    )
-                    
-                    allDependencies.addAll(dependencies)
-                    logger.info("Plugin '${plugin.name}' inferred ${dependencies.size} dependencies")
-                } catch (e: Exception) {
-                    logger.error("Error running dependency inference for plugin '${plugin.name}': ${e.message}", e)
-                }
+        forgePlugins.forEach { plugin ->
+            try {
+                logger.debug("Running dependency inference for plugin: ${plugin.metadata.id}")
+                val options = plugin.defaultOptions
+                
+                val dependencies = plugin.createDependencies(options, dependenciesContext)
+                
+                allDependencies.addAll(dependencies)
+                logger.info("Plugin '${plugin.metadata.id}' inferred ${dependencies.size} dependencies")
+            } catch (e: Exception) {
+                logger.error("Error running dependency inference for plugin '${plugin.metadata.id}': ${e.message}", e)
             }
         }
         
@@ -143,26 +134,13 @@ class InferenceEngine(
     }
     
     /**
-     * Register a plugin with the inference engine
+     * Get built-in plugins when external plugins fail to load
      */
-    fun <T> registerPlugin(plugin: InferencePlugin<T>) {
-        pluginRegistry.register(plugin)
-        logger.info("Registered inference plugin: ${plugin.name}")
-    }
-    
-    /**
-     * Get all registered plugins
-     */
-    fun getPlugins(): List<InferencePlugin<*>> = pluginRegistry.getPlugins()
-    
-    /**
-     * Merge plugin configuration options with default options
-     * Currently returns plugin's default options to avoid ClassCastException
-     */
-    private fun mergePluginOptions(plugin: InferencePlugin<*>, configOptions: Map<String, Any>): Any? {
-        // For now, always use plugin defaults to avoid ClassCastException
-        // TODO: Implement proper option merging that converts Map to typed plugin options
-        // when we have proper deserialization logic for each plugin's option type
-        return plugin.defaultOptions
+    private fun getBuiltInPlugins(): List<ForgePlugin> {
+        // Return built-in implementations of common plugins
+        return listOf(
+            // We'll add built-in plugins here if needed
+            // For now, return empty list and rely on external plugins
+        )
     }
 }

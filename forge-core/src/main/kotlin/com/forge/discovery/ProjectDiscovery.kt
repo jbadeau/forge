@@ -40,8 +40,7 @@ class ProjectDiscovery(
         if (enableInference) {
             inferenceResult = inferenceEngine.runInference(
                 workspaceRoot, 
-                workspaceConfig.toMap(),
-                workspaceConfig.plugins
+                workspaceConfig.toMap()
             )
             projects.putAll(inferenceResult.projects)
             logger.info("Inferred ${inferenceResult.projects.size} projects via inference plugins")
@@ -159,12 +158,7 @@ class ProjectDiscovery(
         // Add inferred dependencies from plugin inference
         inferenceResult?.dependencies?.forEach { rawDep ->
             if (projects.containsKey(rawDep.source) && projects.containsKey(rawDep.target)) {
-                val dependencyType = when (rawDep.type) {
-                    "static" -> DependencyType.STATIC
-                    "dynamic" -> DependencyType.DYNAMIC
-                    "implicit" -> DependencyType.IMPLICIT
-                    else -> DependencyType.STATIC
-                }
+                val dependencyType = rawDep.type
                 
                 dependencies[rawDep.source]?.add(
                     ProjectGraphDependency(

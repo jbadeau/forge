@@ -8,10 +8,6 @@ import com.forge.discovery.ProjectDiscovery
 import com.forge.execution.TaskGraphBuilder
 import com.forge.execution.TaskExecutor
 import com.forge.inference.InferenceEngine
-import com.forge.inference.plugins.JavaScriptPlugin
-import com.forge.inference.plugins.MavenPlugin
-import com.forge.inference.plugins.DockerPlugin
-import com.forge.inference.plugins.GoPlugin
 import java.nio.file.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.exists
@@ -423,13 +419,7 @@ private fun findWorkspaceRoot(): Path {
 }
 
 private fun discoverProjects(workspaceRoot: Path): com.forge.core.ProjectGraph {
-    val inferenceEngine = InferenceEngine().apply {
-        registerPlugin(JavaScriptPlugin())
-        registerPlugin(MavenPlugin())
-        registerPlugin(DockerPlugin())
-        registerPlugin(GoPlugin())
-    }
-
+    val inferenceEngine = InferenceEngine()
     val discovery = ProjectDiscovery(workspaceRoot, enableInference = true, inferenceEngine = inferenceEngine)
     return discovery.discoverProjects()
 }
@@ -442,6 +432,7 @@ fun main(args: Array<String>) = ForgeCli()
             ShowProjectsCommand(),
             ShowProjectCommand()
         ),
-        GraphCommand()
+        GraphCommand(),
+        PluginCommand()
     )
     .main(args)
