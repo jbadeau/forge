@@ -149,8 +149,11 @@ class MavenPlugin : InferencePlugin<MavenPluginOptions> {
         
         // Build target - presence of pom.xml implies Maven project that can be compiled
         targets[options.buildTargetName] = TargetConfiguration(
-            command = "mvn compile",
-            options = mapOf("cwd" to projectRoot),
+            executor = "forge:run-commands",
+            options = mapOf(
+                "commands" to listOf("mvn compile"),
+                "cwd" to projectRoot
+            ),
             inputs = listOf(
                 "default",
                 "^default",
@@ -163,8 +166,11 @@ class MavenPlugin : InferencePlugin<MavenPluginOptions> {
         
         // Test target - Maven projects typically have tests
         targets[options.testTargetName] = TargetConfiguration(
-            command = "mvn test",
-            options = mapOf("cwd" to projectRoot),
+            executor = "forge:run-commands",
+            options = mapOf(
+                "commands" to listOf("mvn test"),
+                "cwd" to projectRoot
+            ),
             inputs = listOf(
                 "default",
                 "^default",
@@ -180,8 +186,11 @@ class MavenPlugin : InferencePlugin<MavenPluginOptions> {
         
         // Package target - create JAR/WAR
         targets[options.packageTargetName] = TargetConfiguration(
-            command = "mvn package",
-            options = mapOf("cwd" to projectRoot),
+            executor = "forge:run-commands",
+            options = mapOf(
+                "commands" to listOf("mvn package"),
+                "cwd" to projectRoot
+            ),
             inputs = listOf(
                 "default",
                 "^default",
@@ -196,8 +205,11 @@ class MavenPlugin : InferencePlugin<MavenPluginOptions> {
         // Lint target - if checkstyle or spotless is configured
         if (hasLintingPlugin(pomXml)) {
             targets[options.lintTargetName] = TargetConfiguration(
-                command = "mvn checkstyle:check",
-                options = mapOf("cwd" to projectRoot),
+                executor = "forge:run-commands",
+                options = mapOf(
+                    "commands" to listOf("mvn checkstyle:check"),
+                    "cwd" to projectRoot
+                ),
                 inputs = listOf("default", "{projectRoot}/pom.xml"),
                 cache = true
             )

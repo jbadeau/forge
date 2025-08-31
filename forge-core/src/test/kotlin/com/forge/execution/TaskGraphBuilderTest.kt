@@ -194,7 +194,7 @@ class TaskGraphBuilderTest {
         taskGraph.getAllTasks().forEach { task ->
             println("=== ${task.id} Configuration ===")
             println("  Executor: ${task.target.executor}")
-            println("  Command: ${task.target.command}")
+            println("  Commands: ${task.target.options["commands"]}")
             println("  Dependencies: ${task.target.dependsOn.joinToString(", ")}")
             println("  Inputs: ${task.target.inputs.joinToString(", ")}")
             println("  Outputs: ${task.target.outputs.joinToString(", ")}")

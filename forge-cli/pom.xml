@@ -56,6 +56,13 @@
             <artifactId>kotlin-stdlib</artifactId>
         </dependency>
 
+        <!-- Clikt for CLI -->
+        <dependency>
+            <groupId>com.github.ajalt.clikt</groupId>
+            <artifactId>clikt-jvm</artifactId>
+            <version>5.0.3</version>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -93,7 +100,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.forge.demo.ForgeDemoKt</mainClass>
+                            <mainClass>com.forge.cli.ForgeCliMainKt</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -114,4 +121,44 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- Native compilation profile -->
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>0.10.3</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <imageName>forge</imageName>
+                            <mainClass>com.forge.cli.ForgeCliMainKt</mainClass>
+                            <buildArgs>
+                                <buildArg>--no-fallback</buildArg>
+                                <buildArg>--report-unsupported-elements-at-runtime</buildArg>
+                                <buildArg>--allow-incomplete-classpath</buildArg>
+                                <buildArg>--enable-url-protocols=http,https</buildArg>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                                <buildArg>-H:IncludeResources=.*\.properties$</buildArg>
+                                <buildArg>-H:IncludeResources=.*\.json$</buildArg>
+                                <buildArg>-H:IncludeResources=.*\.xml$</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

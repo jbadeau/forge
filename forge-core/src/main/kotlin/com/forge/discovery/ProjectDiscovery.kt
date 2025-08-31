@@ -135,7 +135,6 @@ class ProjectDiscovery(
     ): com.forge.core.TargetConfiguration {
         return com.forge.core.TargetConfiguration(
             executor = target.executor ?: defaults.executor,
-            command = target.command ?: defaults.command,
             options = defaults.options + target.options,
             configurations = defaults.configurations + target.configurations,
             dependsOn = (defaults.dependsOn + target.dependsOn).distinct(),

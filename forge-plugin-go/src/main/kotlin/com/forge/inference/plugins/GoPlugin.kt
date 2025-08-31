@@ -181,8 +181,11 @@ class GoPlugin : InferencePlugin<GoPluginOptions> {
         
         // Build target - universal for all Go projects
         targets[options.buildTargetName] = TargetConfiguration(
-            command = "go build ./...",
-            options = mapOf("cwd" to projectRoot),
+            executor = "forge:run-commands",
+            options = mapOf(
+                "commands" to listOf("go build ./..."),
+                "cwd" to projectRoot
+            ),
             inputs = listOf(
                 "default",
                 "^default",
@@ -196,8 +199,11 @@ class GoPlugin : InferencePlugin<GoPluginOptions> {
         
         // Test target - universal for Go projects
         targets[options.testTargetName] = TargetConfiguration(
-            command = "go test ./...",
-            options = mapOf("cwd" to projectRoot),
+            executor = "forge:run-commands",
+            options = mapOf(
+                "commands" to listOf("go test ./..."),
+                "cwd" to projectRoot
+            ),
             inputs = listOf(
                 "default",
                 "^default",
@@ -211,8 +217,11 @@ class GoPlugin : InferencePlugin<GoPluginOptions> {
         
         // Vet target - static analysis
         targets[options.vetTargetName] = TargetConfiguration(
-            command = "go vet ./...",
-            options = mapOf("cwd" to projectRoot),
+            executor = "forge:run-commands",
+            options = mapOf(
+                "commands" to listOf("go vet ./..."),
+                "cwd" to projectRoot
+            ),
             inputs = listOf(
                 "default",
                 "{projectRoot}/go.mod",
@@ -223,8 +232,11 @@ class GoPlugin : InferencePlugin<GoPluginOptions> {
         
         // Mod tidy target - dependency management
         targets[options.tidyTargetName] = TargetConfiguration(
-            command = "go mod tidy",
-            options = mapOf("cwd" to projectRoot),
+            executor = "forge:run-commands",
+            options = mapOf(
+                "commands" to listOf("go mod tidy"),
+                "cwd" to projectRoot
+            ),
             inputs = listOf(
                 "{projectRoot}/go.mod",
                 "{projectRoot}/**/*.go"
@@ -236,8 +248,11 @@ class GoPlugin : InferencePlugin<GoPluginOptions> {
         // Run target - only for applications with main.go
         if (projectDir.resolve("main.go").exists()) {
             targets[options.runTargetName] = TargetConfiguration(
-                command = "go run .",
-                options = mapOf("cwd" to projectRoot),
+                executor = "forge:run-commands",
+                options = mapOf(
+                    "commands" to listOf("go run ."),
+                    "cwd" to projectRoot
+                ),
                 inputs = listOf(
                     "{projectRoot}/go.mod",
                     "{projectRoot}/**/*.go"

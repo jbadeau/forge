@@ -20,14 +20,13 @@
         <module>forge-plugin-go</module>
         <module>forge-plugin-docker</module>
         <module>forge-cli</module>
-        <module>forge-demo</module>
     </modules>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.9.20</kotlin.version>
+        <kotlin.version>2.1.0</kotlin.version>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
         <jackson.version>2.15.2</jackson.version>
         <junit.version>5.10.0</junit.version>

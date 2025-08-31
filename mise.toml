@@ -1,10 +1,14 @@
 [tools]
-java = "latest"
-maven = "latest"
+java = "graalvm-community-21.0.2"
+maven = "3.9.5"
 
 [tasks.forge]
 description = "Run the Forge CLI"
 run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"$@\""
+
+[tasks.build-native]
+description = "Build native executable for forge CLI"
+run = "cd forge-cli && ./build-native.sh"
 
 [tasks."forge:build"]
 description = "Run forge build for all projects"

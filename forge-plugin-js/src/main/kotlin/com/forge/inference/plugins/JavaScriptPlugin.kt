@@ -139,8 +139,11 @@ class JavaScriptPlugin : InferencePlugin<JavaScriptPluginOptions> {
             }
             
             targets[options.buildTargetName] = TargetConfiguration(
-                command = buildCommand,
-                options = mapOf("cwd" to projectRoot),
+                executor = "forge:run-commands",
+                options = mapOf(
+                    "commands" to listOf(buildCommand),
+                    "cwd" to projectRoot
+                ),
                 inputs = listOf("default", "^default"),
                 outputs = listOf("{workspaceRoot}/dist/$projectRoot"),
                 cache = true
@@ -155,8 +158,11 @@ class JavaScriptPlugin : InferencePlugin<JavaScriptPluginOptions> {
             }
             
             targets[options.testTargetName] = TargetConfiguration(
-                command = testCommand,
-                options = mapOf("cwd" to projectRoot),
+                executor = "forge:run-commands",
+                options = mapOf(
+                    "commands" to listOf(testCommand),
+                    "cwd" to projectRoot
+                ),
                 inputs = listOf("default", "^default", "{workspaceRoot}/jest.config.*", "{projectRoot}/jest.config.*"),
                 outputs = listOf("{workspaceRoot}/coverage/$projectRoot"),
                 cache = true
@@ -171,8 +177,11 @@ class JavaScriptPlugin : InferencePlugin<JavaScriptPluginOptions> {
             }
             
             targets[options.lintTargetName] = TargetConfiguration(
-                command = lintCommand,
-                options = mapOf("cwd" to projectRoot),
+                executor = "forge:run-commands",
+                options = mapOf(
+                    "commands" to listOf(lintCommand),
+                    "cwd" to projectRoot
+                ),
                 inputs = listOf("default", "{workspaceRoot}/.eslintrc.*", "{projectRoot}/.eslintrc.*"),
                 cache = true
             )
@@ -187,8 +196,11 @@ class JavaScriptPlugin : InferencePlugin<JavaScriptPluginOptions> {
         
         if (serveCommand != null) {
             targets["serve"] = TargetConfiguration(
-                command = serveCommand,
-                options = mapOf("cwd" to projectRoot),
+                executor = "forge:run-commands",
+                options = mapOf(
+                    "commands" to listOf(serveCommand),
+                    "cwd" to projectRoot
+                ),
                 cache = false
             )
         }

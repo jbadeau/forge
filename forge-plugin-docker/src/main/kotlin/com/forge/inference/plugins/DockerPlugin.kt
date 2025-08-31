@@ -122,8 +122,9 @@ class DockerPlugin : InferencePlugin<DockerPluginOptions> {
         
         // Docker build target
         targets[options.buildTargetName] = TargetConfiguration(
-            command = "docker build -t $projectName:latest .",
+            executor = "forge:run-commands",
             options = mapOf(
+                "commands" to listOf("docker build -t $projectName:latest ."),
                 "cwd" to projectRoot
             ),
             inputs = listOf(
@@ -137,8 +138,9 @@ class DockerPlugin : InferencePlugin<DockerPluginOptions> {
         
         // Docker run target 
         targets[options.runTargetName] = TargetConfiguration(
-            command = "docker run --rm $projectName:latest",
+            executor = "forge:run-commands",
             options = mapOf(
+                "commands" to listOf("docker run --rm $projectName:latest"),
                 "cwd" to projectRoot
             ),
             dependsOn = listOf(options.buildTargetName),
@@ -147,8 +149,9 @@ class DockerPlugin : InferencePlugin<DockerPluginOptions> {
         
         // Docker push target (if registry is configured)
         targets[options.pushTargetName] = TargetConfiguration(
-            command = "docker push $projectName:latest",
+            executor = "forge:run-commands",
             options = mapOf(
+                "commands" to listOf("docker push $projectName:latest"),
                 "cwd" to projectRoot
             ),
             dependsOn = listOf(options.buildTargetName),
