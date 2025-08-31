@@ -2,14 +2,19 @@ package com.forge.daemon
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.forge.config.WorkspaceConfiguration
+import com.forge.core.WorkspaceConfiguration
 import com.forge.discovery.ProjectDiscovery
+import com.forge.execution.ExecutorFactory
+import com.forge.graph.Task
+import com.forge.graph.TaskExecutionPlan
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.io.*
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.io.path.exists
 
 /**
  * JSON-RPC 2.0 message format (LSP-style)
@@ -175,13 +180,13 @@ class DaemonServer {
                     val workspaceRoot = params["workspaceRoot"] as? String ?: Paths.get("").toAbsolutePath().toString()
                     val projectName = params["projectName"] as? String ?: throw IllegalArgumentException("projectName required")
                     val target = params["target"] as? String ?: throw IllegalArgumentException("target required")
+                    val verbose = params["verbose"] as? Boolean ?: false
                     val dryRun = params["dryRun"] as? Boolean ?: false
                     
                     if (dryRun) {
                         "DRY RUN: Would execute $projectName:$target"
                     } else {
-                        // TODO: Implement task execution with current architecture
-                        "Task execution not yet implemented in daemon"
+                        executeTask(workspaceRoot, projectName, target, verbose)
                     }
                 }
                 
@@ -253,6 +258,99 @@ class DaemonServer {
     private fun createProjectDiscovery(workspaceRoot: String): ProjectDiscovery {
         val workspaceRootPath = Paths.get(workspaceRoot)
         return ProjectDiscovery(workspaceRootPath)
+    }
+    
+    private fun loadWorkspaceConfiguration(workspaceRoot: Path): WorkspaceConfiguration {
+        val forgeConfigPath = workspaceRoot.resolve("forge.json")
+        val nxConfigPath = workspaceRoot.resolve("nx.json")
+        
+        return when {
+            forgeConfigPath.exists() -> {
+                logger.debug("Loading forge.json configuration")
+                WorkspaceConfiguration.load(forgeConfigPath)
+            }
+            nxConfigPath.exists() -> {
+                logger.debug("Loading nx.json configuration (compatibility mode)")
+                WorkspaceConfiguration.load(nxConfigPath)
+            }
+            else -> {
+                logger.debug("No workspace configuration found, using defaults")
+                WorkspaceConfiguration()
+            }
+        }
+    }
+    
+    private suspend fun executeTask(
+        workspaceRoot: String,
+        projectName: String,
+        target: String,
+        verbose: Boolean
+    ): String = withContext(Dispatchers.IO) {
+        try {
+            val path = Paths.get(workspaceRoot)
+            val discovery = ProjectDiscovery(path)
+            val projectGraph = discovery.discoverProjects()
+            
+            // Find the project
+            val project = projectGraph.nodes[projectName]
+                ?: return@withContext "Error: Project '$projectName' not found"
+            
+            // Check if target exists
+            if (!project.data.targets.containsKey(target)) {
+                return@withContext "Error: Target '$target' not found in project '$projectName'"
+            }
+            
+            // Create a Task for the requested target
+            val task = Task(
+                id = "$projectName:$target",
+                projectName = projectName,
+                targetName = target,
+                target = project.data.targets[target]!!
+            )
+            
+            // Create single-layer execution plan
+            val executionPlan = TaskExecutionPlan(
+                layers = listOf(listOf(task))
+            )
+            
+            // Load workspace configuration to get Remote Execution settings
+            val workspaceConfig = loadWorkspaceConfiguration(path)
+            
+            // Create executor with Remote Execution support
+            val executor = ExecutorFactory.createExecutor(
+                workspaceRoot = path,
+                projectGraph = projectGraph,
+                workspaceConfig = workspaceConfig
+            )
+            
+            logger.info("Executing task $projectName:$target")
+            
+            // Execute the task
+            val results = executor.execute(executionPlan, verbose)
+            
+            // Close executor if it's closeable
+            if (executor is AutoCloseable) {
+                executor.close()
+            }
+            
+            // Get the task result
+            val taskResult = results.results[task.id]
+            
+            if (taskResult != null) {
+                val output = taskResult.output
+                if (taskResult.isSuccess) {
+                    "Task $projectName:$target completed successfully${if (output.isNotBlank()) "\nOutput:\n$output" else ""}"
+                } else {
+                    val error = taskResult.error
+                    "Task $projectName:$target failed: $error${if (output.isNotBlank()) "\nOutput:\n$output" else ""}"
+                }
+            } else {
+                "Task $projectName:$target: No result available"
+            }
+        } catch (e: Exception) {
+            logger.error("Error executing task $projectName:$target", e)
+            "Error executing task: ${e.message}"
+        }
     }
     
     fun stop() {

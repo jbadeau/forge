@@ -57,7 +57,7 @@
   </build>
   <properties>
     <main.class>com.forge.daemon.ForgeDaemonMainKt</main.class>
-    <kotlin.version>2.1.0</kotlin.version>
     <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
+    <kotlin.version>2.1.0</kotlin.version>
   </properties>
 </project>
