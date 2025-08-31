@@ -1,4 +1,9 @@
+[env]
+GOPATH = "~/.local/share/mise/installs/go/latest"
+PATH = "/Users/jbadeau/.local/share/mise/installs/go/latest/bin:$PATH"
+
 [tools]
+go = "latest"
 java = "graalvm-community-21.0.2"
 maven = "3.9.5"
 
