@@ -5,8 +5,8 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.int
 import com.forge.discovery.ProjectDiscovery
+import com.forge.execution.ExecutorFactory
 import com.forge.execution.TaskGraphBuilder
-import com.forge.execution.TaskExecutor
 import com.forge.inference.InferenceEngine
 import java.nio.file.Path
 import kotlin.io.path.absolute
@@ -43,7 +43,7 @@ class RunCommand : CliktCommand() {
         echo()
 
         val workspaceRoot = findWorkspaceRoot()
-        val projectGraph = discoverProjects(workspaceRoot)
+        val (projectGraph, workspaceConfig) = discoverProjectsWithConfig(workspaceRoot)
 
         val projectNode = projectGraph.nodes[project]
         if (projectNode == null) {
@@ -93,9 +93,15 @@ class RunCommand : CliktCommand() {
         } else {
             echo("▶️  Executing ${executionPlan.totalTasks} task(s)...")
             
-            // Execute tasks with real commands
-            val executor = TaskExecutor(workspaceRoot, projectGraph)
-            val results = executor.execute(executionPlan, verbose)
+            // Execute tasks with unified executor (supports both local and remote execution)
+            val executor = ExecutorFactory.createExecutor(workspaceRoot, projectGraph, workspaceConfig)
+            val results = try {
+                executor.execute(executionPlan, verbose)
+            } finally {
+                if (executor is AutoCloseable) {
+                    executor.close()
+                }
+            }
             
             if (results.success) {
                 echo("✅ Task execution completed successfully!")
@@ -213,9 +219,15 @@ class RunManyCommand : CliktCommand() {
         } else {
             echo("▶️  Executing ${executionPlan.totalTasks} task(s) across ${executionPlan.getLayerCount()} layer(s)...")
             
-            // Execute tasks with real commands
-            val executor = TaskExecutor(workspaceRoot, projectGraph)
-            val results = executor.execute(executionPlan, verbose)
+            // Execute tasks with unified executor (supports both local and remote execution)
+            val executor = ExecutorFactory.createExecutor(workspaceRoot, projectGraph)
+            val results = try {
+                executor.execute(executionPlan, verbose)
+            } finally {
+                if (executor is AutoCloseable) {
+                    executor.close()
+                }
+            }
             
             if (results.success) {
                 echo("✅ Task execution completed successfully!")
@@ -422,6 +434,19 @@ private fun discoverProjects(workspaceRoot: Path): com.forge.core.ProjectGraph {
     val inferenceEngine = InferenceEngine()
     val discovery = ProjectDiscovery(workspaceRoot, enableInference = true, inferenceEngine = inferenceEngine)
     return discovery.discoverProjects()
+}
+
+private fun discoverProjectsWithConfig(workspaceRoot: Path): Pair<com.forge.core.ProjectGraph, com.forge.core.WorkspaceConfiguration?> {
+    val inferenceEngine = InferenceEngine()
+    val discovery = ProjectDiscovery(workspaceRoot, enableInference = true, inferenceEngine = inferenceEngine)
+    val projectGraph = discovery.discoverProjects()
+    
+    // Convert old config format to new format
+    val coreWorkspaceConfig = discovery.workspaceConfiguration?.let { oldConfig ->
+        com.forge.config.WorkspaceConfigurationConverter.convert(oldConfig)
+    }
+    
+    return projectGraph to coreWorkspaceConfig
 }
 
 fun main(args: Array<String>) = ForgeCli()

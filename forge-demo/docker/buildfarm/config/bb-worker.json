@@ -1,0 +1,52 @@
+{
+  "grpc_servers": [{
+    "listen_addresses": [":7982"],
+    "authentication_policy": {
+      "allow": {}
+    }
+  }],
+  "scheduler": {
+    "grpc": {
+      "endpoint": {
+        "address": "bb-scheduler:8980"
+      }
+    }
+  },
+  "content_addressable_storage": {
+    "grpc": {
+      "endpoint": {
+        "address": "bb-scheduler:8980"
+      }
+    }
+  },
+  "maximum_message_size_bytes": 16777216,
+  "instance_name": "default",
+  "worker_id": {
+    "datacenter": "paris",
+    "rack": "4",
+    "slot": "15",
+    "hostname": "buildbarn-paris-4-15.example.com"
+  },
+  "platform": {},
+  "concurrency": 8,
+  "build_directories": [{
+    "native": {
+      "build_directory_path": "/worker/build",
+      "cache_directory_count": 16,
+      "cache_directory_size_bytes": 1073741824,
+      "maximum_cache_file_count": 10000,
+      "maximum_cache_file_size_bytes": 104857600
+    },
+    "runners": [{
+      "endpoint": {"address": "unix:///worker/runner"},
+      "concurrency": 8,
+      "platform": {},
+      "default_runner": true
+    }]
+  }],
+  "file_pool": {
+    "in_memory": {
+      "size_bytes": 134217728
+    }
+  }
+}

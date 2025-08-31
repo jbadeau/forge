@@ -26,10 +26,15 @@ class ProjectDiscovery(
     private val logger = LoggerFactory.getLogger(ProjectDiscovery::class.java)
     private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
     
+    // Expose workspace configuration for external access
+    var workspaceConfiguration: com.forge.config.WorkspaceConfiguration? = null
+        private set
+    
     fun discoverProjects(): ProjectGraph {
         logger.info("Starting project discovery in workspace: $workspaceRoot")
         
         val workspaceConfig = loadWorkspaceConfiguration()
+        this.workspaceConfiguration = workspaceConfig // Store for external access
         val projects = mutableMapOf<String, ProjectConfiguration>()
         
         // Discover projects via explicit project.json files

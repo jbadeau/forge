@@ -13,18 +13,18 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.exists
 
 /**
- * Executes tasks by running shell commands
+ * Executes tasks by running shell commands locally (legacy implementation)
  */
-class TaskExecutor(
+class LocalTaskExecutor(
     private val workspaceRoot: Path,
     private val projectGraph: ProjectGraph
-) {
+) : TaskExecutor {
     private val logger = LoggerFactory.getLogger(TaskExecutor::class.java)
     
     /**
      * Execute a task execution plan
      */
-    fun execute(executionPlan: TaskExecutionPlan, verbose: Boolean = false): ExecutionResults {
+    override fun execute(executionPlan: TaskExecutionPlan, verbose: Boolean): ExecutionResults {
         val results = mutableMapOf<String, TaskResult>()
         val startTime = System.currentTimeMillis()
         

@@ -1,0 +1,35 @@
+[tasks.start-remote-execution]
+description = "Start Remote Execution server (simple version for testing)"
+run = "docker-compose -f docker/buildfarm/docker-compose.simple.yml up -d simple-remote-exec"
+sources = ["docker/buildfarm/*"]
+
+[tasks.stop-remote-execution]
+description = "Stop Remote Execution server"
+run = "docker-compose -f docker/buildfarm/docker-compose.simple.yml down"
+
+[tasks.restart-remote-execution]
+description = "Restart Remote Execution server"
+run = "docker-compose -f docker/buildfarm/docker-compose.simple.yml restart simple-remote-exec"
+
+[tasks.remote-execution-logs]
+description = "Show Remote Execution server logs"
+run = "docker-compose -f docker/buildfarm/docker-compose.simple.yml logs -f simple-remote-exec"
+
+[tasks.start-buildbarn]
+description = "Start BuildBarn Remote Execution server (advanced setup)"
+run = "docker-compose -f docker/buildfarm/docker-compose.simple.yml up -d bb-scheduler bb-worker"
+sources = ["docker/buildfarm/*"]
+
+[tasks.test-remote-execution]
+description = "Test Forge with Remote Execution (requires server running on port 8080)"
+run = "java -jar ../forge-cli/target/forge.jar run go-utils build --verbose"
+
+[tasks.test-forge-caching]
+description = "Test Forge caching - run same task twice to see cache hit"
+run = """
+echo "🔥 First run (should execute):"
+java -jar ../forge-cli/target/forge.jar run go-utils build
+echo ""
+echo "🚀 Second run (should be cached):"
+java -jar ../forge-cli/target/forge.jar run go-utils build
+"""

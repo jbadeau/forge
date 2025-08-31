@@ -42,5 +42,12 @@
       "cache": true,
       "dependsOn": ["build"]
     }
+  },
+  "remoteExecution": {
+    "enabled": true,
+    "defaultEndpoint": "127.0.0.1:8980",
+    "useTls": false,
+    "defaultTimeoutSeconds": 300,
+    "defaultInstanceName": "default"
   }
 }

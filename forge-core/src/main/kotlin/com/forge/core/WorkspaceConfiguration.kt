@@ -20,7 +20,8 @@ data class WorkspaceConfiguration(
     val generators: Map<String, Any> = emptyMap(),
     val tasksRunnerOptions: Map<String, Any> = emptyMap(),
     val affected: AffectedConfiguration = AffectedConfiguration(),
-    val cli: CliConfiguration = CliConfiguration()
+    val cli: CliConfiguration = CliConfiguration(),
+    val remoteExecution: RemoteExecutionWorkspaceConfig? = null
 ) {
     companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -129,6 +130,46 @@ data class WorkspaceConfiguration(
             )
         )
     }
+    
+    /**
+     * Check if Remote Execution is enabled at workspace level
+     */
+    fun isRemoteExecutionEnabled(): Boolean = remoteExecution?.enabled == true
+    
+    /**
+     * Get Remote Execution configuration for a target
+     */
+    fun getRemoteExecutionConfig(targetConfig: TargetConfiguration? = null): com.forge.execution.remote.RemoteExecutionConfig? {
+        val workspaceConfig = remoteExecution ?: return null
+        val targetRemoteConfig = targetConfig?.remoteExecution
+        
+        // If target explicitly disables remote execution, return null
+        if (targetRemoteConfig?.enabled == false) {
+            return null
+        }
+        
+        // If workspace remote execution is disabled and target doesn't enable it, return null
+        if (!workspaceConfig.enabled && targetRemoteConfig?.enabled != true) {
+            return null
+        }
+        
+        // Build configuration from workspace defaults and target overrides
+        val endpoint = targetRemoteConfig?.endpoint ?: workspaceConfig.defaultEndpoint
+        val instanceName = targetRemoteConfig?.instanceName ?: workspaceConfig.defaultInstanceName
+        val timeoutSeconds = targetRemoteConfig?.timeoutSeconds ?: workspaceConfig.defaultTimeoutSeconds
+        val platform = targetRemoteConfig?.platform?.let { targetPlatform ->
+            workspaceConfig.defaultPlatform + targetPlatform
+        } ?: workspaceConfig.defaultPlatform
+        
+        return com.forge.execution.remote.RemoteExecutionConfig(
+            endpoint = endpoint,
+            instanceName = instanceName,
+            useTls = workspaceConfig.useTls,
+            maxConnections = workspaceConfig.maxConnections,
+            timeoutSeconds = timeoutSeconds,
+            platform = platform
+        )
+    }
 }
 
 /**
@@ -146,4 +187,32 @@ data class AffectedConfiguration(
 data class CliConfiguration(
     val packageManager: String = "npm",
     val defaultCollection: String = "@forge/workspace"
+)
+
+/**
+ * Workspace-level Remote Execution configuration
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class RemoteExecutionWorkspaceConfig(
+    val enabled: Boolean = false,
+    val defaultEndpoint: String = "localhost:8080",
+    val defaultInstanceName: String = "",
+    val useTls: Boolean = false,
+    val maxConnections: Int = 100,
+    val defaultTimeoutSeconds: Long = 300,
+    val defaultPlatform: Map<String, String> = emptyMap(),
+    val endpoints: Map<String, RemoteExecutionEndpointConfig> = emptyMap()
+)
+
+/**
+ * Configuration for a specific Remote Execution endpoint
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class RemoteExecutionEndpointConfig(
+    val endpoint: String,
+    val instanceName: String = "",
+    val useTls: Boolean = false,
+    val maxConnections: Int = 100,
+    val timeoutSeconds: Long = 300,
+    val platform: Map<String, String> = emptyMap()
 )

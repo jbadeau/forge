@@ -92,29 +92,49 @@
                 </executions>
             </plugin>
 
-            <!-- Create executable JAR -->
+            <!-- Create executable JAR with Maven Shade Plugin for better gRPC support -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.6.0</version>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.forge.cli.ForgeCliMainKt</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
                     <finalName>forge</finalName>
-                    <appendAssemblyId>false</appendAssemblyId>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>com.forge.cli.ForgeCliMainKt</mainClass>
+                        </transformer>
+                        <!-- Handle META-INF/services for gRPC -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                        <!-- Aggregate properties files -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/io.netty.versions.properties</resource>
+                        </transformer>
+                    </transformers>
+                    <filters>
+                        <filter>
+                            <!-- Exclude signature files to prevent security exceptions -->
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                                <exclude>META-INF/LICENSE*</exclude>
+                                <exclude>META-INF/NOTICE*</exclude>
+                                <exclude>META-INF/DEPENDENCIES*</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <!-- Don't shade gRPC netty - preserve original packaging -->
+                    <relocations>
+                        <!-- Only shade conflicting dependencies, not gRPC -->
+                    </relocations>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>shade</goal>
                         </goals>
                     </execution>
                 </executions>

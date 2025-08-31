@@ -42,7 +42,9 @@ data class TargetConfiguration(
     val outputs: List<String> = emptyList(),
     val cache: Boolean = true,
     @JsonProperty("parallelism") 
-    val parallelism: Boolean = true
+    val parallelism: Boolean = true,
+    @JsonProperty("remoteExecution")
+    val remoteExecution: RemoteExecutionTargetConfig? = null
 ) {
     fun getDependencies(): List<String> = dependsOn
     
@@ -58,4 +60,25 @@ data class TargetConfiguration(
         configurations[name] ?: emptyMap()
     
     fun hasConfiguration(name: String): Boolean = configurations.containsKey(name)
+    
+    fun isRemoteExecutionEnabled(): Boolean = remoteExecution != null
+    
+    fun getRemoteExecutionConfig(): RemoteExecutionTargetConfig? = remoteExecution
 }
+
+/**
+ * Remote Execution configuration for individual targets
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class RemoteExecutionTargetConfig(
+    @JsonProperty("endpoint")
+    val endpoint: String? = null,
+    @JsonProperty("platform")
+    val platform: Map<String, String> = emptyMap(),
+    @JsonProperty("timeout")
+    val timeoutSeconds: Long? = null,
+    @JsonProperty("instanceName")
+    val instanceName: String? = null,
+    @JsonProperty("enabled")
+    val enabled: Boolean = true
+)
