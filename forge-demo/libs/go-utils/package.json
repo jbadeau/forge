@@ -1,9 +1,0 @@
-{
-  "name": "go-utils-test",
-  "version": "1.0.0",
-  "scripts": {
-    "build": "echo 'Hello from go-utils build via shell command!'",
-    "test": "echo 'Running tests for go-utils'",
-    "lint": "echo 'Linting go-utils'"
-  }
-}
