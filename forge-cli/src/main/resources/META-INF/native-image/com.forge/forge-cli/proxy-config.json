@@ -1,0 +1,14 @@
+[
+  {
+    "interfaces": ["build.bazel.remote.execution.v2.ExecutionGrpc$ExecutionImplBase"]
+  },
+  {
+    "interfaces": ["build.bazel.remote.execution.v2.ContentAddressableStorageGrpc$ContentAddressableStorageImplBase"] 
+  },
+  {
+    "interfaces": ["build.bazel.remote.execution.v2.ActionCacheGrpc$ActionCacheImplBase"]
+  },
+  {
+    "interfaces": ["build.bazel.remote.execution.v2.CapabilitiesGrpc$CapabilitiesImplBase"]
+  }
+]

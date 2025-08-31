@@ -20,6 +20,8 @@
         <module>forge-plugin-go</module>
         <module>forge-plugin-docker</module>
         <module>forge-cli</module>
+        <module>forge-daemon</module>
+        <module>forge-client</module>
     </modules>
 
     <properties>

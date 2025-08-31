@@ -69,10 +69,10 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
 
-        <!-- gRPC for Remote Execution -->
+        <!-- gRPC for Remote Execution - use non-shaded for native image compatibility -->
         <dependency>
             <groupId>io.grpc</groupId>
-            <artifactId>grpc-netty-shaded</artifactId>
+            <artifactId>grpc-netty</artifactId>
             <version>1.58.0</version>
         </dependency>
         

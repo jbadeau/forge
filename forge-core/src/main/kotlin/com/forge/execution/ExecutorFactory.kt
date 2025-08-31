@@ -30,12 +30,21 @@ class ExecutorFactory {
             // Check if explicit workspace config is provided and has remote execution enabled
             val remoteConfig = workspaceConfig?.getRemoteExecutionConfig()
             
-            return if (remoteConfig != null && workspaceConfig.isRemoteExecutionEnabled()) {
+            // Check if gRPC classes are available (they won't be in native build without gRPC)
+            val isGrpcAvailable = try {
+                Class.forName("io.grpc.ManagedChannel")
+                true
+            } catch (e: ClassNotFoundException) {
+                logger.info("gRPC not available - Remote Execution disabled")
+                false
+            }
+            
+            return if (remoteConfig != null && workspaceConfig.isRemoteExecutionEnabled() && isGrpcAvailable) {
                 logger.info("Using Remote Execution with configured endpoint: ${remoteConfig.endpoint}")
                 UnifiedTaskExecutor(
                     RemoteExecutionExecutor(workspaceRoot, projectGraph, remoteConfig)
                 )
-            } else if (remoteConfig != null) {
+            } else if (remoteConfig != null && isGrpcAvailable) {
                 logger.info("Using RemoteExecutionExecutor in local mode (endpoint: ${remoteConfig.endpoint})")
                 // Use RemoteExecutionExecutor even for "local" mode to maintain unified caching
                 UnifiedTaskExecutor(

@@ -1,0 +1,34 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "META-INF/.*\\.properties"
+      },
+      {
+        "pattern": "META-INF/.*\\.json"
+      },
+      {
+        "pattern": "META-INF/.*\\.xml"
+      },
+      {
+        "pattern": "META-INF/.*\\.proto"
+      },
+      {
+        "pattern": "META-INF/services/.*"
+      },
+      {
+        "pattern": ".*\\.properties"
+      },
+      {
+        "pattern": ".*\\.json"
+      },
+      {
+        "pattern": ".*\\.xml"
+      },
+      {
+        "pattern": ".*\\.proto"
+      }
+    ]
+  },
+  "bundles": []
+}
