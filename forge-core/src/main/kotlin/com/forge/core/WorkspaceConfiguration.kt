@@ -79,9 +79,37 @@ data class WorkspaceConfiguration(
                     emptyMap()
                 }
                 
+                val namedInputs = if (jsonNode.has("namedInputs")) {
+                    objectMapper.convertValue(jsonNode["namedInputs"], Map::class.java) as Map<String, List<String>>
+                } else {
+                    emptyMap()
+                }
+                
+                val generators = if (jsonNode.has("generators")) {
+                    objectMapper.convertValue(jsonNode["generators"], Map::class.java) as Map<String, Any>
+                } else {
+                    emptyMap()
+                }
+                
+                val tasksRunnerOptions = if (jsonNode.has("tasksRunnerOptions")) {
+                    objectMapper.convertValue(jsonNode["tasksRunnerOptions"], Map::class.java) as Map<String, Any>
+                } else {
+                    emptyMap()
+                }
+                
+                val remoteExecution = if (jsonNode.has("remoteExecution")) {
+                    objectMapper.convertValue(jsonNode["remoteExecution"], RemoteExecutionWorkspaceConfig::class.java)
+                } else {
+                    null
+                }
+                
                 return WorkspaceConfiguration(
                     plugins = plugins,
-                    targetDefaults = targetDefaults
+                    targetDefaults = targetDefaults,
+                    namedInputs = namedInputs,
+                    generators = generators,
+                    tasksRunnerOptions = tasksRunnerOptions,
+                    remoteExecution = remoteExecution
                 )
             } else {
                 // Standard format

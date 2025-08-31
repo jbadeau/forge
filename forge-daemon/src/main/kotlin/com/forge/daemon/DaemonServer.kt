@@ -15,6 +15,7 @@ import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.exists
+import kotlin.io.path.readText
 
 /**
  * JSON-RPC 2.0 message format (LSP-style)
@@ -315,6 +316,8 @@ class DaemonServer {
             
             // Load workspace configuration to get Remote Execution settings
             val workspaceConfig = loadWorkspaceConfiguration(path)
+            logger.info("Loaded workspace config with remote execution enabled: ${workspaceConfig.isRemoteExecutionEnabled()}")
+            logger.info("Remote execution config: ${workspaceConfig.getRemoteExecutionConfig()}")
             
             // Create executor with Remote Execution support
             val executor = ExecutorFactory.createExecutor(
