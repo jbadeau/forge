@@ -3,6 +3,7 @@ package com.forge.core
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.forge.execution.TaskExecutorConfig
 import com.forge.plugin.PluginSpec
 import com.forge.plugin.PluginSource
 import java.nio.file.Path
@@ -20,7 +21,8 @@ data class WorkspaceConfiguration(
     val tasksRunnerOptions: Map<String, Any> = emptyMap(),
     val affected: AffectedConfiguration = AffectedConfiguration(),
     val cli: CliConfiguration = CliConfiguration(),
-    val remoteExecution: RemoteExecutionWorkspaceConfig? = null
+    val remoteExecution: RemoteExecutionWorkspaceConfig? = null,
+    val taskExecutor: TaskExecutorConfig? = null
 ) {
     companion object {
         private val objectMapper = jacksonObjectMapper()

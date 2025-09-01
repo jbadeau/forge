@@ -49,6 +49,19 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         
+        <!-- All executor plugins -->
+        <dependency>
+            <groupId>com.forge</groupId>
+            <artifactId>forge-local-executor</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.forge</groupId>
+            <artifactId>forge-remote-executor</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        
         <!-- JSON processing -->
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>

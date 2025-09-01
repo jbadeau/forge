@@ -14,6 +14,7 @@
     <description>A Kotlin-based build tool inspired by Nx with project and task graph capabilities</description>
 
     <modules>
+        <module>forge-workspace</module>
         <module>forge-plugin</module>
         <module>forge</module>
         <module>forge-maven-devkit</module>
@@ -24,6 +25,8 @@
         <module>forge-maven-plugin</module>
         <module>forge-go-plugin</module>
         <module>forge-docker-plugin</module>
+        <module>forge-local-executor</module>
+        <module>forge-remote-executor</module>
         <module>forge-cli</module>
         <module>forge-daemon</module>
         <module>forge-client</module>

@@ -1,8 +1,10 @@
-package com.forge.execution
+package com.forge.execution.local
 
 import com.forge.core.ProjectGraph
+import com.forge.core.TargetConfiguration
+import com.forge.execution.ProcessResult
+import com.forge.execution.TaskExecutorPlugin
 import com.forge.graph.Task
-import com.forge.graph.TaskExecutionPlan
 import com.forge.graph.TaskResult
 import com.forge.graph.TaskStatus
 import org.slf4j.LoggerFactory
@@ -13,72 +15,24 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.exists
 
 /**
- * Executes tasks by running shell commands locally
+ * Local task executor plugin that executes tasks by running shell commands locally
  */
-class LocalTaskExecutor(
-    private val workspaceRoot: Path,
-    private val projectGraph: ProjectGraph
-) : TaskExecutor {
-    private val logger = LoggerFactory.getLogger(TaskExecutor::class.java)
+class LocalTaskExecutorPlugin : TaskExecutorPlugin {
     
-    /**
-     * Execute a task execution plan
-     */
-    override fun execute(executionPlan: TaskExecutionPlan, verbose: Boolean): ExecutionResults {
-        val results = mutableMapOf<String, TaskResult>()
-        val startTime = System.currentTimeMillis()
-        
-        logger.info("Starting execution of ${executionPlan.totalTasks} task(s) across ${executionPlan.getLayerCount()} layer(s)")
-        
-        for ((layerIndex, layer) in executionPlan.layers.withIndex()) {
-            logger.info("Executing layer ${layerIndex + 1} with ${layer.size} task(s)")
-            
-            // Execute tasks in parallel within each layer
-            val layerResults = layer.map { task ->
-                executeTask(task, verbose)
-            }
-            
-            // Add results to map
-            layerResults.forEach { result ->
-                results[result.task.id] = result
-            }
-            
-            // Check if any task in this layer failed
-            val failedTasks = layerResults.filter { !it.isSuccess }
-            if (failedTasks.isNotEmpty()) {
-                logger.error("${failedTasks.size} task(s) failed in layer ${layerIndex + 1}")
-                failedTasks.forEach { result ->
-                    logger.error("Failed task: ${result.task.id} - ${result.error}")
-                }
-                // Stop execution on failure
-                break
-            }
-        }
-        
-        val endTime = System.currentTimeMillis()
-        val duration = endTime - startTime
-        
-        val successCount = results.values.count { it.isSuccess }
-        val failureCount = results.values.count { !it.isSuccess }
-        
-        logger.info("Execution completed in ${duration}ms - $successCount succeeded, $failureCount failed")
-        
-        return ExecutionResults(
-            results = results,
-            totalDuration = duration,
-            successCount = successCount,
-            failureCount = failureCount
-        )
-    }
+    private val logger = LoggerFactory.getLogger(LocalTaskExecutorPlugin::class.java)
     
-    /**
-     * Execute a single task
-     */
-    private fun executeTask(task: Task, verbose: Boolean): TaskResult {
+    override fun getExecutorId(): String = "com.forge.executor.LocalTaskExecutor"
+    
+    override fun executeTask(
+        task: Task,
+        projectGraph: ProjectGraph,
+        workspaceRoot: Path,
+        verbose: Boolean
+    ): TaskResult {
         val startTime = System.currentTimeMillis()
         
         try {
-            logger.info("Executing task: ${task.id}")
+            logger.info("Executing task locally: ${task.id}")
             
             val projectNode = projectGraph.nodes[task.projectName]
             if (projectNode == null) {
@@ -104,13 +58,13 @@ class LocalTaskExecutor(
                 )
             }
             
-            // All targets must use run-commands executor
+            // Execute based on executor type
             val processResult = when (targetConfig.executor) {
                 "nx:run-commands", "@nx/run-commands", "forge:run-commands", null -> {
-                    executeRunCommands(targetConfig, task.projectName, projectNode.data.root, verbose)
+                    executeRunCommands(targetConfig, task.projectName, projectNode.data.root, workspaceRoot, verbose)
                 }
                 else -> {
-                    logger.error("Unsupported executor: ${targetConfig.executor}. Only 'forge:run-commands', 'nx:run-commands', and '@nx/run-commands' are supported.")
+                    logger.error("Unsupported executor: ${targetConfig.executor}")
                     ProcessResult(
                         exitCode = 1,
                         output = "",
@@ -166,16 +120,17 @@ class LocalTaskExecutor(
     }
     
     /**
-     * Execute run-commands executor (Nx style)
+     * Execute run-commands executor
      */
     private fun executeRunCommands(
-        targetConfig: com.forge.core.TargetConfiguration,
+        targetConfig: TargetConfiguration,
         projectName: String,
         projectRoot: String,
+        workspaceRoot: Path,
         verbose: Boolean
     ): ProcessResult {
         val options = targetConfig.options
-        val workingDir = resolveWorkingDirectory(options["cwd"] as? String, projectRoot)
+        val workingDir = resolveWorkingDirectory(options["cwd"] as? String, projectRoot, workspaceRoot)
         
         // Get commands array
         val commands = when (val commandsValue = options["commands"]) {
@@ -199,11 +154,7 @@ class LocalTaskExecutor(
         
         logger.debug("Executing ${commands.size} command(s) in ${if (parallel) "parallel" else "sequence"} in $workingDir")
         
-        return if (parallel) {
-            executeCommandsInParallel(commands, workingDir, envOptions, projectName, verbose)
-        } else {
-            executeCommandsInSequence(commands, workingDir, envOptions, projectName, verbose)
-        }
+        return executeCommandsInSequence(commands, workingDir, envOptions, projectName, workspaceRoot, verbose)
     }
     
     /**
@@ -214,13 +165,14 @@ class LocalTaskExecutor(
         workingDir: Path,
         envOptions: Map<*, *>,
         projectName: String,
+        workspaceRoot: Path,
         verbose: Boolean
     ): ProcessResult {
         val allOutput = StringBuilder()
         val allErrors = StringBuilder()
         
         for ((index, command) in commands.withIndex()) {
-            val resolvedCommand = resolveCommand(command, projectName, workingDir.toString())
+            val resolvedCommand = resolveCommand(command, projectName, workingDir.toString(), workspaceRoot)
             logger.debug("Executing command ${index + 1}/${commands.size}: $resolvedCommand")
             
             if (verbose) {
@@ -247,30 +199,6 @@ class LocalTaskExecutor(
             output = allOutput.toString().trim(),
             error = allErrors.toString().trim()
         )
-    }
-    
-    /**
-     * Execute commands in parallel
-     */
-    private fun executeCommandsInParallel(
-        commands: List<String>,
-        workingDir: Path,
-        envOptions: Map<*, *>,
-        projectName: String,
-        verbose: Boolean
-    ): ProcessResult {
-        logger.debug("Executing ${commands.size} commands in parallel")
-        
-        // For now, execute sequentially (parallel execution would require coroutines or threads)
-        // This is a simplification - real parallel execution would use CompletableFuture or similar
-        return executeCommandsInSequence(commands, workingDir, envOptions, projectName, verbose)
-    }
-
-    /**
-     * Execute a shell command
-     */
-    private fun executeShellCommand(command: String, workingDir: Path, verbose: Boolean): ProcessResult {
-        return executeShellCommand(command, workingDir, verbose, emptyMap<String, String>())
     }
     
     /**
@@ -341,7 +269,7 @@ class LocalTaskExecutor(
     /**
      * Resolve command with variable substitution
      */
-    private fun resolveCommand(command: String, projectName: String, projectRoot: String): String {
+    private fun resolveCommand(command: String, projectName: String, projectRoot: String, workspaceRoot: Path): String {
         return command
             .replace("{projectRoot}", workspaceRoot.resolve(projectRoot).toString())
             .replace("{projectName}", projectName)
@@ -351,7 +279,7 @@ class LocalTaskExecutor(
     /**
      * Resolve working directory
      */
-    private fun resolveWorkingDirectory(cwd: String?, projectRoot: String): Path {
+    private fun resolveWorkingDirectory(cwd: String?, projectRoot: String, workspaceRoot: Path): Path {
         return if (cwd != null) {
             val resolvedCwd = workspaceRoot.resolve(cwd)
             if (resolvedCwd.exists()) {
@@ -363,25 +291,4 @@ class LocalTaskExecutor(
             workspaceRoot.resolve(projectRoot)
         }
     }
-}
-
-/**
- * Result of executing a shell process
- */
-data class ProcessResult(
-    val exitCode: Int,
-    val output: String,
-    val error: String
-)
-
-/**
- * Results of executing multiple tasks
- */
-data class ExecutionResults(
-    val results: Map<String, TaskResult>,
-    val totalDuration: Long,
-    val successCount: Int,
-    val failureCount: Int
-) {
-    val success: Boolean get() = failureCount == 0
 }

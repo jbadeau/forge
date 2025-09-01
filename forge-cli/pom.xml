@@ -18,37 +18,14 @@
     <description>Command line interface for Forge build tool</description>
 
     <dependencies>
-        <!-- Depend on forge -->
+
+        <!-- Client for communicating with forge daemon -->
         <dependency>
             <groupId>com.forge</groupId>
-            <artifactId>forge</artifactId>
+            <artifactId>forge-client</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Depend on individual plugin modules -->
-        <dependency>
-            <groupId>com.forge</groupId>
-            <artifactId>forge-js-plugin</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.forge</groupId>
-            <artifactId>forge-maven-plugin</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.forge</groupId>
-            <artifactId>forge-go-plugin</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.forge</groupId>
-            <artifactId>forge-docker-plugin</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <!-- Kotlin Standard Library -->
         <dependency>

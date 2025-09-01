@@ -1,8 +1,8 @@
 package com.forge.plugin
 
-import com.forge.plugin.api.WorkspaceConfiguration
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import java.util.ServiceLoader
 import kotlin.io.path.exists
 
 /**
@@ -16,21 +16,47 @@ class PluginManager(
     private val pluginClassLoaders = mutableListOf<PluginClassLoader>()
     
     /**
-     * Load plugins for a workspace
+     * Load plugins for a workspace using ServiceLoader for built-in plugins
      */
     fun loadPlugins(workspaceRoot: Path): List<ForgePlugin> {
         logger.info("Loading plugins for workspace: $workspaceRoot")
         
-        val config = loadWorkspaceConfig(workspaceRoot)
         val plugins = mutableListOf<ForgePlugin>()
         
-        config.plugins.forEach { pluginConfig ->
+        // Load built-in plugins using ServiceLoader
+        try {
+            val serviceLoader = ServiceLoader.load(ForgePlugin::class.java)
+            serviceLoader.forEach { plugin ->
+                try {
+                    plugin.initialize()
+                    plugins.add(plugin)
+                    logger.info("Loaded built-in plugin: ${plugin.metadata.name} v${plugin.metadata.version}")
+                } catch (e: Exception) {
+                    logger.error("Failed to initialize built-in plugin: ${plugin.metadata.id}", e)
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to load built-in plugins via ServiceLoader", e)
+        }
+        
+        logger.info("Loaded ${plugins.size} plugin(s)")
+        return plugins
+    }
+    
+    /**
+     * Load plugins from specifications
+     */
+    fun loadPlugins(pluginSpecs: List<PluginSpec>): List<ForgePlugin> {
+        logger.info("Loading ${pluginSpecs.size} specified plugin(s)")
+        
+        val plugins = mutableListOf<ForgePlugin>()
+        
+        pluginSpecs.forEach { spec ->
             try {
-                val spec = PluginSpec.fromConfiguration(pluginConfig)
                 val plugin = loadPlugin(spec)
                 plugins.add(plugin)
             } catch (e: Exception) {
-                logger.error("Failed to load plugin: ${pluginConfig.plugin}", e)
+                logger.error("Failed to load plugin: ${spec.id}", e)
                 // Continue loading other plugins
             }
         }
@@ -168,22 +194,6 @@ class PluginManager(
         pluginClassLoaders.clear()
     }
     
-    private fun loadWorkspaceConfig(workspaceRoot: Path): WorkspaceConfiguration {
-        val configPath = workspaceRoot.resolve("forge.json")
-        
-        return if (configPath.exists()) {
-            try {
-                // TODO: Load workspace configuration from file
-                WorkspaceConfiguration()
-            } catch (e: Exception) {
-                logger.warn("Failed to load workspace configuration from $configPath, using defaults", e)
-                WorkspaceConfiguration()
-            }
-        } else {
-            logger.debug("No forge.json found, using default configuration")
-            WorkspaceConfiguration()
-        }
-    }
 }
 
 /**
