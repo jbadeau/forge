@@ -1,32 +1,5 @@
-[env]
-GOPATH = "~/.local/share/mise/installs/go/latest"
-PATH = "/Users/jbadeau/.local/share/mise/installs/go/latest/bin:$PATH"
-
 [tools]
 go = "latest"
 java = "graalvm-community-21.0.2"
 maven = "3.9.5"
-
-[tasks.forge]
-description = "Run the Forge CLI"
-run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"$@\""
-
-[tasks.build-native]
-description = "Build native executable for forge CLI"
-run = "cd forge-cli && ./build-native.sh"
-
-[tasks."forge:build"]
-description = "Run forge build for all projects"
-run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"--target=build\""
-
-[tasks."forge:test"]
-description = "Run forge test for all projects"
-run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"--target=test\""
-
-[tasks."forge:lint"]
-description = "Run forge lint for all projects"
-run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"--target=lint\""
-
-[tasks."forge:dry-run"]
-description = "Run forge build in dry-run mode"
-run = "mvn exec:java -Dexec.mainClass=\"com.forge.demo.ForgeDemoKt\" -Dexec.args=\"--target=build --dry-run\""
+node = "latest"
