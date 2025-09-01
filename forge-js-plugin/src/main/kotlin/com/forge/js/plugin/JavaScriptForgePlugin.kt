@@ -1,7 +1,7 @@
-package com.forge.plugins
+package com.forge.js.plugin
 
-import com.forge.docker.devkit.DockerProjectInference
-import com.forge.docker.devkit.DockerInferenceOptions
+import com.forge.js.devkit.JavaScriptProjectInference
+import com.forge.js.devkit.JavaScriptInferenceOptions
 import com.forge.plugin.api.CreateNodesContext
 import com.forge.plugin.api.CreateNodesResult
 import com.forge.plugin.api.CreateDependenciesContext
@@ -11,34 +11,35 @@ import com.forge.plugin.PluginMetadata
 import com.forge.plugin.ValidationResult
 
 /**
- * Options for Docker plugin
+ * Options for JavaScript plugin
  */
-data class DockerPluginOptions(
-    val buildTargetName: String = "docker-build",
-    val pushTargetName: String = "docker-push",
-    val runTargetName: String = "docker-run"
+data class JavaScriptPluginOptions(
+    val buildTargetName: String = "build",
+    val testTargetName: String = "test", 
+    val lintTargetName: String = "lint",
+    val serveTargetName: String = "serve"
 )
 
 /**
- * ForgePlugin implementation for Docker projects
+ * New ForgePlugin implementation for JavaScript/TypeScript/Node.js projects
  */
-class DockerForgePlugin : ForgePlugin {
+class JavaScriptForgePlugin : ForgePlugin {
     
-    private val inference = DockerProjectInference()
+    private val inference = JavaScriptProjectInference()
     
     override val metadata = PluginMetadata(
-        id = "com.forge.docker",
-        name = "Docker Plugin",
+        id = "com.forge.js",
+        name = "JavaScript Plugin",
         version = "1.0.0",
-        description = "Support for Docker containerization",
-        createNodesPattern = "**/Dockerfile",
-        supportedFiles = listOf("Dockerfile", "docker-compose.yml", "docker-compose.yaml"),
+        description = "Support for JavaScript, TypeScript, and Node.js projects",
+        createNodesPattern = "**/package.json",
+        supportedFiles = listOf("package.json", "tsconfig.json", "jest.config.js", "vite.config.ts"),
         author = "Forge Team",
-        homepage = "https://github.com/forge/plugin-docker",
-        tags = listOf("docker", "container", "deployment")
+        homepage = "https://github.com/forge/plugin-js",
+        tags = listOf("javascript", "typescript", "nodejs", "npm", "yarn", "pnpm")
     )
     
-    override val defaultOptions = DockerPluginOptions()
+    override val defaultOptions = JavaScriptPluginOptions()
     
     override fun createNodes(
         configFiles: List<String>, 
@@ -46,10 +47,11 @@ class DockerForgePlugin : ForgePlugin {
         context: CreateNodesContext
     ): CreateNodesResult {
         val opts = parseOptions(options)
-        val inferenceOptions = DockerInferenceOptions(
+        val inferenceOptions = JavaScriptInferenceOptions(
             buildTargetName = opts.buildTargetName,
-            pushTargetName = opts.pushTargetName,
-            runTargetName = opts.runTargetName
+            testTargetName = opts.testTargetName,
+            lintTargetName = opts.lintTargetName,
+            serveTargetName = opts.serveTargetName
         )
         
         val projects = inference.createNodes(configFiles, inferenceOptions, context)
@@ -61,10 +63,11 @@ class DockerForgePlugin : ForgePlugin {
         context: CreateDependenciesContext
     ): List<RawProjectGraphDependency> {
         val opts = parseOptions(options)
-        val inferenceOptions = DockerInferenceOptions(
+        val inferenceOptions = JavaScriptInferenceOptions(
             buildTargetName = opts.buildTargetName,
-            pushTargetName = opts.pushTargetName,
-            runTargetName = opts.runTargetName
+            testTargetName = opts.testTargetName,
+            lintTargetName = opts.lintTargetName,
+            serveTargetName = opts.serveTargetName
         )
         
         return inference.createDependencies(inferenceOptions, context)
@@ -79,17 +82,18 @@ class DockerForgePlugin : ForgePlugin {
         }
     }
     
-    private fun parseOptions(options: Any?): DockerPluginOptions {
+    private fun parseOptions(options: Any?): JavaScriptPluginOptions {
         return when (options) {
             null -> defaultOptions
-            is DockerPluginOptions -> options
+            is JavaScriptPluginOptions -> options
             is Map<*, *> -> {
                 @Suppress("UNCHECKED_CAST")
                 val map = options as Map<String, Any>
-                DockerPluginOptions(
+                JavaScriptPluginOptions(
                     buildTargetName = map["buildTargetName"] as? String ?: defaultOptions.buildTargetName,
-                    pushTargetName = map["pushTargetName"] as? String ?: defaultOptions.pushTargetName,
-                    runTargetName = map["runTargetName"] as? String ?: defaultOptions.runTargetName
+                    testTargetName = map["testTargetName"] as? String ?: defaultOptions.testTargetName,
+                    lintTargetName = map["lintTargetName"] as? String ?: defaultOptions.lintTargetName,
+                    serveTargetName = map["serveTargetName"] as? String ?: defaultOptions.serveTargetName
                 )
             }
             else -> throw IllegalArgumentException("Invalid options type: ${options::class}")
