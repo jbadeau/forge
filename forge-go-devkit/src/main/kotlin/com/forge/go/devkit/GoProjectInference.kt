@@ -7,6 +7,7 @@ import com.forge.plugin.api.CreateNodesContext
 import com.forge.plugin.api.CreateDependenciesContext
 import com.forge.plugin.api.RawProjectGraphDependency
 import com.forge.plugin.api.DependencyType
+import com.forge.plugin.api.ProjectGraphInferrer
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -23,12 +24,12 @@ data class GoInferenceOptions(
 /**
  * Core Go project inference logic
  */
-class GoProjectInference {
+class GoProjectInference : ProjectGraphInferrer<GoInferenceOptions> {
     
     private val logger = LoggerFactory.getLogger(GoProjectInference::class.java)
     private val objectMapper = ObjectMapper()
     
-    fun createNodes(
+    override fun inferProjects(
         configFiles: List<String>,
         options: GoInferenceOptions,
         context: CreateNodesContext
@@ -53,7 +54,7 @@ class GoProjectInference {
         return projects
     }
     
-    fun createDependencies(
+    override fun inferProjectDependencies(
         options: GoInferenceOptions,
         context: CreateDependenciesContext
     ): List<RawProjectGraphDependency> {

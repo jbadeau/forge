@@ -1,13 +1,13 @@
 package com.forge.docker.devkit
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.forge.plugin.api.ProjectConfiguration
 import com.forge.plugin.api.TargetConfiguration
 import com.forge.plugin.api.CreateNodesContext
 import com.forge.plugin.api.CreateDependenciesContext
 import com.forge.plugin.api.RawProjectGraphDependency
 import com.forge.plugin.api.DependencyType
+import com.forge.plugin.api.ProjectGraphInferrer
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -24,12 +24,12 @@ data class DockerInferenceOptions(
 /**
  * Core Docker project inference logic
  */
-class DockerProjectInference {
+class DockerProjectInference : ProjectGraphInferrer<DockerInferenceOptions> {
     
     private val logger = LoggerFactory.getLogger(DockerProjectInference::class.java)
     private val objectMapper = ObjectMapper()
     
-    fun createNodes(
+    override fun inferProjects(
         configFiles: List<String>,
         options: DockerInferenceOptions,
         context: CreateNodesContext
@@ -54,7 +54,7 @@ class DockerProjectInference {
         return projects
     }
     
-    fun createDependencies(
+    override fun inferProjectDependencies(
         options: DockerInferenceOptions,
         context: CreateDependenciesContext
     ): List<RawProjectGraphDependency> {

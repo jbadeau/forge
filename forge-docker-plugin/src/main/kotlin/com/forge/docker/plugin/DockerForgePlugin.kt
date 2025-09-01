@@ -52,7 +52,7 @@ class DockerForgePlugin : ForgePlugin {
             runTargetName = opts.runTargetName
         )
         
-        val projects = inference.createNodes(configFiles, inferenceOptions, context)
+        val projects = inference.inferProjects(configFiles, inferenceOptions, context)
         return CreateNodesResult(projects = projects)
     }
     
@@ -67,7 +67,7 @@ class DockerForgePlugin : ForgePlugin {
             runTargetName = opts.runTargetName
         )
         
-        return inference.createDependencies(inferenceOptions, context)
+        return inference.inferProjectDependencies(inferenceOptions, context)
     }
     
     override fun validateOptions(options: Any?): ValidationResult {

@@ -52,7 +52,7 @@ class GoForgePlugin : ForgePlugin {
             lintTargetName = opts.lintTargetName
         )
         
-        val projects = inference.createNodes(configFiles, inferenceOptions, context)
+        val projects = inference.inferProjects(configFiles, inferenceOptions, context)
         return CreateNodesResult(projects = projects)
     }
     
@@ -67,7 +67,7 @@ class GoForgePlugin : ForgePlugin {
             lintTargetName = opts.lintTargetName
         )
         
-        return inference.createDependencies(inferenceOptions, context)
+        return inference.inferProjectDependencies(inferenceOptions, context)
     }
     
     override fun validateOptions(options: Any?): ValidationResult {

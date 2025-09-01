@@ -7,6 +7,7 @@ import com.forge.plugin.api.CreateNodesContext
 import com.forge.plugin.api.CreateDependenciesContext
 import com.forge.plugin.api.RawProjectGraphDependency
 import com.forge.plugin.api.DependencyType
+import com.forge.plugin.api.ProjectGraphInferrer
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -23,12 +24,12 @@ data class MavenInferenceOptions(
 /**
  * Core Maven project inference logic
  */
-class MavenProjectInference {
+class MavenProjectInference : ProjectGraphInferrer<MavenInferenceOptions> {
     
     private val logger = LoggerFactory.getLogger(MavenProjectInference::class.java)
     private val xmlMapper = XmlMapper()
     
-    fun createNodes(
+    override fun inferProjects(
         configFiles: List<String>,
         options: MavenInferenceOptions,
         context: CreateNodesContext
@@ -53,7 +54,7 @@ class MavenProjectInference {
         return projects
     }
     
-    fun createDependencies(
+    override fun inferProjectDependencies(
         options: MavenInferenceOptions,
         context: CreateDependenciesContext
     ): List<RawProjectGraphDependency> {

@@ -9,6 +9,7 @@ import com.forge.plugin.api.CreateNodesContext
 import com.forge.plugin.api.CreateDependenciesContext
 import com.forge.plugin.api.RawProjectGraphDependency
 import com.forge.plugin.api.DependencyType
+import com.forge.plugin.api.ProjectGraphInferrer
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -26,12 +27,12 @@ data class JavaScriptInferenceOptions(
 /**
  * Core JavaScript project inference logic
  */
-class JavaScriptProjectInference {
+class JavaScriptProjectInference : ProjectGraphInferrer<JavaScriptInferenceOptions> {
     
     private val logger = LoggerFactory.getLogger(JavaScriptProjectInference::class.java)
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
     
-    fun createNodes(
+    override fun inferProjects(
         configFiles: List<String>,
         options: JavaScriptInferenceOptions,
         context: CreateNodesContext
@@ -56,7 +57,7 @@ class JavaScriptProjectInference {
         return projects
     }
     
-    fun createDependencies(
+    override fun inferProjectDependencies(
         options: JavaScriptInferenceOptions,
         context: CreateDependenciesContext
     ): List<RawProjectGraphDependency> {
