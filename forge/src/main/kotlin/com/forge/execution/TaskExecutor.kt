@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.exists
 
 /**
- * Executes tasks by running shell commands locally (legacy implementation)
+ * Executes tasks by running shell commands locally
  */
 class LocalTaskExecutor(
     private val workspaceRoot: Path,

@@ -441,12 +441,7 @@ private fun discoverProjectsWithConfig(workspaceRoot: Path): Pair<com.forge.core
     val discovery = ProjectDiscovery(workspaceRoot, enableInference = true, inferenceEngine = inferenceEngine)
     val projectGraph = discovery.discoverProjects()
     
-    // Convert old config format to new format
-    val coreWorkspaceConfig = discovery.workspaceConfiguration?.let { oldConfig ->
-        com.forge.config.WorkspaceConfigurationConverter.convert(oldConfig)
-    }
-    
-    return projectGraph to coreWorkspaceConfig
+    return projectGraph to discovery.workspaceConfiguration
 }
 
 fun main(args: Array<String>) = ForgeCli()

@@ -1,7 +1,6 @@
 package com.forge.core
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.forge.plugin.PluginSpec
@@ -31,90 +30,7 @@ data class WorkspaceConfiguration(
          */
         fun load(configPath: Path): WorkspaceConfiguration {
             val jsonContent = configPath.readText()
-            val jsonNode = objectMapper.readTree(jsonContent)
-            
-            // Handle legacy format
-            if (jsonNode.has("plugins") && jsonNode["plugins"].isArray) {
-                val pluginsArray = jsonNode["plugins"]
-                val plugins = mutableListOf<PluginSpec>()
-                
-                pluginsArray.forEach { pluginNode ->
-                    try {
-                        if (pluginNode.has("plugin")) {
-                            // Legacy format: { "plugin": "@forge/js", "options": {...} }
-                            val pluginId = pluginNode["plugin"].asText()
-                            val options = if (pluginNode.has("options")) {
-                                objectMapper.convertValue(pluginNode["options"], Map::class.java) as Map<String, Any>
-                            } else {
-                                emptyMap()
-                            }
-                            
-                            // Convert @forge/js to com.forge.js
-                            val normalizedId = if (pluginId.startsWith("@forge/")) {
-                                "com.forge." + pluginId.removePrefix("@forge/")
-                            } else {
-                                pluginId
-                            }
-                            
-                            plugins.add(PluginSpec(
-                                id = normalizedId,
-                                version = "latest",
-                                source = PluginSource.MAVEN,
-                                options = options
-                            ))
-                        } else if (pluginNode.has("id")) {
-                            // New format: { "id": "com.forge.js", "version": "1.0.0", ... }
-                            plugins.add(objectMapper.convertValue(pluginNode, PluginSpec::class.java))
-                        }
-                    } catch (e: Exception) {
-                        // Skip invalid plugin configurations
-                        println("Warning: Skipping invalid plugin configuration: ${pluginNode}")
-                    }
-                }
-                
-                // Parse other fields
-                val targetDefaults = if (jsonNode.has("targetDefaults")) {
-                    objectMapper.convertValue(jsonNode["targetDefaults"], Map::class.java) as Map<String, TargetConfiguration>
-                } else {
-                    emptyMap()
-                }
-                
-                val namedInputs = if (jsonNode.has("namedInputs")) {
-                    objectMapper.convertValue(jsonNode["namedInputs"], Map::class.java) as Map<String, List<String>>
-                } else {
-                    emptyMap()
-                }
-                
-                val generators = if (jsonNode.has("generators")) {
-                    objectMapper.convertValue(jsonNode["generators"], Map::class.java) as Map<String, Any>
-                } else {
-                    emptyMap()
-                }
-                
-                val tasksRunnerOptions = if (jsonNode.has("tasksRunnerOptions")) {
-                    objectMapper.convertValue(jsonNode["tasksRunnerOptions"], Map::class.java) as Map<String, Any>
-                } else {
-                    emptyMap()
-                }
-                
-                val remoteExecution = if (jsonNode.has("remoteExecution")) {
-                    objectMapper.convertValue(jsonNode["remoteExecution"], RemoteExecutionWorkspaceConfig::class.java)
-                } else {
-                    null
-                }
-                
-                return WorkspaceConfiguration(
-                    plugins = plugins,
-                    targetDefaults = targetDefaults,
-                    namedInputs = namedInputs,
-                    generators = generators,
-                    tasksRunnerOptions = tasksRunnerOptions,
-                    remoteExecution = remoteExecution
-                )
-            } else {
-                // Standard format
-                return objectMapper.readValue(jsonContent)
-            }
+            return objectMapper.readValue(jsonContent)
         }
         
         /**

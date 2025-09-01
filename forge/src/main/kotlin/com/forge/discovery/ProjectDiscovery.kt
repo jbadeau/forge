@@ -3,7 +3,7 @@ package com.forge.discovery
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.forge.config.WorkspaceConfiguration
+import com.forge.core.WorkspaceConfiguration
 import com.forge.core.ProjectConfiguration
 import com.forge.core.ProjectGraph
 import com.forge.core.ProjectGraphDependency
@@ -27,7 +27,7 @@ class ProjectDiscovery(
     private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
     
     // Expose workspace configuration for external access
-    var workspaceConfiguration: com.forge.config.WorkspaceConfiguration? = null
+    var workspaceConfiguration: WorkspaceConfiguration? = null
         private set
     
     fun discoverProjects(): ProjectGraph {
@@ -45,13 +45,13 @@ class ProjectDiscovery(
         if (enableInference) {
             inferenceResult = inferenceEngine.runInference(
                 workspaceRoot, 
-                workspaceConfig.toMap()
+                emptyMap()
             )
             projects.putAll(inferenceResult.projects)
             logger.info("Inferred ${inferenceResult.projects.size} projects via inference plugins")
         }
         
-        // Discover projects via legacy plugins
+        // Discover projects via discovery plugins
         plugins.forEach { plugin ->
             projects.putAll(plugin.discoverProjects(workspaceRoot))
         }
@@ -121,7 +121,7 @@ class ProjectDiscovery(
     ): Map<String, ProjectConfiguration> {
         return projects.mapValues { (_, config) ->
             val updatedTargets = config.targets.mapValues { (targetName, targetConfig) ->
-                val defaults = workspaceConfig.getTargetDefaults(targetName)
+                val defaults = workspaceConfig.targetDefaults[targetName]
                 if (defaults != null) {
                     mergeTargetConfigurations(targetConfig, defaults)
                 } else {
