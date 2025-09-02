@@ -26,7 +26,6 @@
         <module>executors/forge-local-executor</module>
         <module>executors/forge-remote-executor</module>
         <module>forge-cli</module>
-        <module>forge-daemon</module>
         <module>forge-client</module>
     </modules>
 

@@ -212,15 +212,15 @@ class DaemonClient {
         val possibleLocations = mutableListOf<Path>()
         for (clientDir in possibleClientDirs) {
             possibleLocations.addAll(listOf(
-                clientDir.resolve("forge-daemon.jar"),
-                clientDir.resolve("forge-daemon/target/forge-daemon.jar"),
-                clientDir.resolve("../forge-daemon/target/forge-daemon.jar"),
-                clientDir.resolve("forge-github/forge-daemon/target/forge-daemon.jar")
+                clientDir.resolve("forge.jar"),
+                clientDir.resolve("forge/target/forge.jar"),
+                clientDir.resolve("../forge/target/forge.jar"),
+                clientDir.resolve("forge-github/forge/target/forge.jar")
             ))
         }
         
         // Add system location
-        possibleLocations.add(Paths.get(System.getProperty("user.home"), ".forge", "daemon", "forge-daemon.jar"))
+        possibleLocations.add(Paths.get(System.getProperty("user.home"), ".forge", "daemon", "forge.jar"))
         
         for (location in possibleLocations) {
             if (Files.exists(location)) {
@@ -228,7 +228,7 @@ class DaemonClient {
             }
         }
         
-        throw RuntimeException("Could not find forge-daemon.jar. Tried: ${possibleLocations.joinToString(", ")}")
+        throw RuntimeException("Could not find forge.jar. Tried: ${possibleLocations.joinToString(", ")}")
     }
     
     private fun findJavaExecutable(): String {

@@ -1,6 +1,7 @@
 package com.forge.execution
 
 import org.slf4j.LoggerFactory
+import java.util.ServiceLoader
 
 /**
  * Factory for creating task executor plugins based on configuration
@@ -14,25 +15,22 @@ class TaskExecutorPluginFactory {
         private val executors = mutableMapOf<String, () -> TaskExecutorPlugin>()
         
         init {
-            // Register built-in executor plugins
+            // Discover executor plugins using ServiceLoader
             try {
-                // Local executor - always available
-                val localExecutorClass = Class.forName("com.forge.execution.local.LocalTaskExecutorPlugin")
-                registerExecutor("com.forge.executor.LocalTaskExecutor") { 
-                    localExecutorClass.getDeclaredConstructor().newInstance() as TaskExecutorPlugin
+                val serviceLoader = ServiceLoader.load(TaskExecutorPlugin::class.java)
+                serviceLoader.forEach { plugin ->
+                    try {
+                        val executorId = plugin.getExecutorId()
+                        registerExecutor(executorId) { 
+                            plugin.javaClass.getDeclaredConstructor().newInstance()
+                        }
+                        logger.info("Discovered task executor plugin: $executorId")
+                    } catch (e: Exception) {
+                        logger.error("Failed to register task executor plugin", e)
+                    }
                 }
-            } catch (e: ClassNotFoundException) {
-                logger.warn("Local executor plugin not available")
-            }
-            
-            try {
-                // Remote executor - only available if forge-remote-executor module is present
-                val remoteExecutorClass = Class.forName("com.forge.execution.remote.RemoteTaskExecutorPlugin")
-                registerExecutor("com.forge.executor.RemoteTaskExecutor") {
-                    remoteExecutorClass.getDeclaredConstructor().newInstance() as TaskExecutorPlugin
-                }
-            } catch (e: ClassNotFoundException) {
-                logger.info("Remote executor plugin not available - forge-remote-executor module not found")
+            } catch (e: Exception) {
+                logger.error("Failed to load task executor plugins via ServiceLoader", e)
             }
         }
         
