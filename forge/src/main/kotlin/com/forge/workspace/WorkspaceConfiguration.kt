@@ -3,7 +3,6 @@ package com.forge.workspace
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.forge.execution.TaskExecutorConfig
 import com.forge.plugin.PluginSpec
 import com.forge.plugin.api.TargetConfiguration
 import java.nio.file.Path
@@ -22,7 +21,6 @@ data class WorkspaceConfiguration(
     val affected: AffectedConfiguration = AffectedConfiguration(),
     val cli: CliConfiguration = CliConfiguration(),
     val remoteExecution: RemoteExecutionWorkspaceConfig? = null,
-    val taskExecutor: TaskExecutorConfig? = null
 ) {
     companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -83,9 +81,9 @@ data class WorkspaceConfiguration(
     fun isRemoteExecutionEnabled(): Boolean = remoteExecution?.enabled == true
     
     /**
-     * Get Remote Execution configuration for a target
+     * Get Remote Execution configuration as a map
      */
-    fun getRemoteExecutionConfig(targetConfig: TargetConfiguration? = null): com.forge.execution.remote.RemoteExecutionConfig? {
+    fun getRemoteExecutionConfig(targetConfig: TargetConfiguration? = null): Map<String, Any>? {
         val workspaceConfig = remoteExecution ?: return null
         val targetRemoteConfig = targetConfig?.remoteExecution
         
@@ -107,13 +105,13 @@ data class WorkspaceConfiguration(
             workspaceConfig.defaultPlatform + targetPlatform
         } ?: workspaceConfig.defaultPlatform
         
-        return com.forge.execution.remote.RemoteExecutionConfig(
-            endpoint = endpoint,
-            instanceName = instanceName,
-            useTls = workspaceConfig.useTls,
-            maxConnections = workspaceConfig.maxConnections,
-            timeoutSeconds = timeoutSeconds,
-            platform = platform
+        return mapOf(
+            "endpoint" to endpoint,
+            "instanceName" to instanceName,
+            "useTls" to workspaceConfig.useTls,
+            "maxConnections" to workspaceConfig.maxConnections,
+            "timeoutSeconds" to timeoutSeconds,
+            "platform" to platform
         )
     }
 }

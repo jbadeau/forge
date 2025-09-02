@@ -23,8 +23,6 @@
         <module>plugins/forge-maven-plugin</module>
         <module>plugins/forge-go-plugin</module>
         <module>plugins/forge-docker-plugin</module>
-        <module>executors/forge-local-executor</module>
-        <module>executors/forge-remote-executor</module>
         <module>forge-cli</module>
         <module>forge-client</module>
     </modules>
