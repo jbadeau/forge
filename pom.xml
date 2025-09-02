@@ -15,16 +15,16 @@
 
     <modules>
         <module>forge</module>
-        <module>forge-maven-devkit</module>
-        <module>forge-go-devkit</module>
-        <module>forge-js-devkit</module>
-        <module>forge-docker-devkit</module>
-        <module>forge-js-plugin</module>
-        <module>forge-maven-plugin</module>
-        <module>forge-go-plugin</module>
-        <module>forge-docker-plugin</module>
-        <module>forge-local-executor</module>
-        <module>forge-remote-executor</module>
+        <module>plugins/forge-maven-devkit</module>
+        <module>plugins/forge-go-devkit</module>
+        <module>plugins/forge-js-devkit</module>
+        <module>plugins/forge-docker-devkit</module>
+        <module>plugins/forge-js-plugin</module>
+        <module>plugins/forge-maven-plugin</module>
+        <module>plugins/forge-go-plugin</module>
+        <module>plugins/forge-docker-plugin</module>
+        <module>executors/forge-local-executor</module>
+        <module>executors/forge-remote-executor</module>
         <module>forge-cli</module>
         <module>forge-daemon</module>
         <module>forge-client</module>
