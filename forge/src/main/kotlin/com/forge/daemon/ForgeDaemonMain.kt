@@ -9,20 +9,20 @@ object ForgeDaemon {
         val logger = LoggerFactory.getLogger("ForgeDaemon")
         
         try {
-            val daemon = DaemonServer()
+            val server = JsonRpcServer()
             
             // Add shutdown hook
             Runtime.getRuntime().addShutdownHook(Thread {
-                logger.info("Shutting down daemon...")
-                daemon.stop()
+                logger.info("Shutting down JSON-RPC server...")
+                server.stop()
             })
             
-            // Start daemon
+            // Start JSON-RPC server
             runBlocking {
-                daemon.start()
+                server.start()
             }
         } catch (e: Exception) {
-            logger.error("Failed to start daemon", e)
+            logger.error("Failed to start JSON-RPC server", e)
             exitProcess(1)
         }
     }
