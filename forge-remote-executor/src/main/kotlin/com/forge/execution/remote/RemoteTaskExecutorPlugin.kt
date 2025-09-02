@@ -1,10 +1,11 @@
 package com.forge.execution.remote
 
-import com.forge.core.ProjectGraph
+import com.forge.project.ProjectGraph
 import com.forge.execution.ExecutionResults
 import com.forge.execution.TaskExecutorPlugin
-import com.forge.graph.Task
-import com.forge.graph.TaskResult
+import com.forge.project.Task
+import com.forge.project.TaskExecutionPlan
+import com.forge.project.TaskResult
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -49,13 +50,13 @@ class RemoteTaskExecutorPlugin : TaskExecutorPlugin {
         verbose: Boolean
     ): TaskResult {
         // For single task execution, create a simple execution plan and use the bulk execute method
-        val singleTaskPlan = com.forge.graph.TaskExecutionPlan(listOf(listOf(task)))
+        val singleTaskPlan = TaskExecutionPlan(listOf(listOf(task)))
         val results = execute(singleTaskPlan, projectGraph, workspaceRoot, verbose)
         return results.results[task.id] ?: throw RuntimeException("Task result not found: ${task.id}")
     }
     
     override fun execute(
-        executionPlan: com.forge.graph.TaskExecutionPlan,
+        executionPlan: TaskExecutionPlan,
         projectGraph: ProjectGraph,
         workspaceRoot: Path,
         verbose: Boolean

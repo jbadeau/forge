@@ -1,10 +1,8 @@
-package com.forge.execution
+package com.forge.project
 
-import com.forge.core.ProjectGraph
-import com.forge.core.ProjectConfiguration
-import com.forge.core.TargetConfiguration
-import com.forge.graph.Task
-import com.forge.graph.TaskGraph
+import com.forge.project.ProjectGraph
+import com.forge.plugin.api.ProjectConfiguration
+import com.forge.plugin.api.TargetConfiguration
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.util.*

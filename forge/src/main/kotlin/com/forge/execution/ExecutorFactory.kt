@@ -1,7 +1,8 @@
 package com.forge.execution
 
-import com.forge.core.ProjectGraph
-import com.forge.core.WorkspaceConfiguration
+import com.forge.project.ProjectGraph
+import com.forge.workspace.WorkspaceConfiguration
+import com.forge.project.TaskExecutionPlan
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -68,5 +69,5 @@ class ExecutorFactory {
  * Interface that task executors must implement
  */
 interface TaskExecutor {
-    fun execute(executionPlan: com.forge.graph.TaskExecutionPlan, verbose: Boolean = false): ExecutionResults
+    fun execute(executionPlan: TaskExecutionPlan, verbose: Boolean = false): ExecutionResults
 }

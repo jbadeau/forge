@@ -1,15 +1,13 @@
 package com.forge.execution.remote
 
 import build.bazel.remote.execution.v2.*
-import com.forge.core.TargetConfiguration
-import com.forge.graph.Task
-import com.google.protobuf.ByteString
+import com.forge.plugin.api.TargetConfiguration
+import com.forge.project.Task
 import com.google.protobuf.Duration as ProtoDuration
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
-import java.util.*
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile

@@ -1,6 +1,6 @@
 package com.forge.inference
 
-import com.forge.discovery.ProjectDiscovery
+import com.forge.project.ProjectGraphBuilder
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import kotlin.test.assertTrue
@@ -12,10 +12,10 @@ class InferenceIntegrationTest {
     @Test
     fun `should not discover projects without registered plugins`() {
         // Given a workspace with package.json files but no registered plugins
-        val discovery = ProjectDiscovery(testWorkspace, enableInference = true)
+        val graphBuilder = ProjectGraphBuilder(testWorkspace, enableInference = true)
         
         // When discovering projects
-        val projectGraph = discovery.discoverProjects()
+        val projectGraph = graphBuilder.buildProjectGraph()
         
         // Then should NOT discover projects since no plugins are registered
         assertTrue(projectGraph.nodes.isEmpty(), "Should not discover projects without registered plugins")
@@ -24,10 +24,10 @@ class InferenceIntegrationTest {
     @Test
     fun `should not discover projects when inference is disabled`() {
         // Given inference is disabled
-        val discovery = ProjectDiscovery(testWorkspace, enableInference = false)
+        val graphBuilder = ProjectGraphBuilder(testWorkspace, enableInference = false)
         
         // When discovering projects
-        val projectGraph = discovery.discoverProjects()
+        val projectGraph = graphBuilder.buildProjectGraph()
         
         // Then should not discover any projects from package.json (only from project.json files if any)
         // Since our test workspace only has package.json files, this should be empty

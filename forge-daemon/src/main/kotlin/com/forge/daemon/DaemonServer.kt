@@ -2,11 +2,11 @@ package com.forge.daemon
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.forge.core.WorkspaceConfiguration
-import com.forge.discovery.ProjectDiscovery
+import com.forge.workspace.WorkspaceConfiguration
+import com.forge.project.ProjectGraphBuilder
 import com.forge.execution.ExecutorFactory
-import com.forge.graph.Task
-import com.forge.graph.TaskExecutionPlan
+import com.forge.project.Task
+import com.forge.project.TaskExecutionPlan
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.io.*
@@ -15,7 +15,6 @@ import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.exists
-import kotlin.io.path.readText
 
 /**
  * JSON-RPC 2.0 message format (LSP-style)
@@ -128,8 +127,8 @@ class DaemonServer {
                     val workspaceRoot = params["workspaceRoot"] as? String ?: Paths.get("").toAbsolutePath().toString()
                     val format = params["format"] as? String ?: "text"
                     
-                    val discovery = createProjectDiscovery(workspaceRoot)
-                    val projectGraph = discovery.discoverProjects()
+                    val graphBuilder = createProjectGraphBuilder(workspaceRoot)
+                    val projectGraph = graphBuilder.buildProjectGraph()
                     val projects = projectGraph.nodes.values
                     if (format == "json") {
                         projects.map { 
@@ -151,8 +150,8 @@ class DaemonServer {
                     val projectName = params["projectName"] as? String ?: throw IllegalArgumentException("projectName required")
                     val format = params["format"] as? String ?: "text"
                     
-                    val discovery = createProjectDiscovery(workspaceRoot)
-                    val projectGraph = discovery.discoverProjects()
+                    val graphBuilder = createProjectGraphBuilder(workspaceRoot)
+                    val projectGraph = graphBuilder.buildProjectGraph()
                     val project = projectGraph.nodes[projectName] ?: throw RuntimeException("Project '$projectName' not found")
                     
                     if (format == "json") {
@@ -199,8 +198,8 @@ class DaemonServer {
                     val all = params["all"] as? Boolean ?: false
                     val dryRun = params["dryRun"] as? Boolean ?: false
                     
-                    val discovery = createProjectDiscovery(workspaceRoot)
-                    val projectGraph = discovery.discoverProjects()
+                    val graphBuilder = createProjectGraphBuilder(workspaceRoot)
+                    val projectGraph = graphBuilder.buildProjectGraph()
                     
                     if (dryRun) {
                         val projects = if (all) projectGraph.nodes.values else {
@@ -224,8 +223,8 @@ class DaemonServer {
                     val workspaceRoot = params["workspaceRoot"] as? String ?: Paths.get("").toAbsolutePath().toString()
                     val format = params["format"] as? String ?: "text"
                     
-                    val discovery = createProjectDiscovery(workspaceRoot)
-                    val projectGraph = discovery.discoverProjects()
+                    val graphBuilder = createProjectGraphBuilder(workspaceRoot)
+                    val projectGraph = graphBuilder.buildProjectGraph()
                     
                     if (format == "json") {
                         // Convert dependencies map to a simple format for JSON
@@ -256,9 +255,9 @@ class DaemonServer {
         }
     }
     
-    private fun createProjectDiscovery(workspaceRoot: String): ProjectDiscovery {
+    private fun createProjectGraphBuilder(workspaceRoot: String): ProjectGraphBuilder {
         val workspaceRootPath = Paths.get(workspaceRoot)
-        return ProjectDiscovery(workspaceRootPath)
+        return ProjectGraphBuilder(workspaceRootPath)
     }
     
     private fun loadWorkspaceConfiguration(workspaceRoot: Path): WorkspaceConfiguration {
@@ -289,8 +288,8 @@ class DaemonServer {
     ): String = withContext(Dispatchers.IO) {
         try {
             val path = Paths.get(workspaceRoot)
-            val discovery = ProjectDiscovery(path)
-            val projectGraph = discovery.discoverProjects()
+            val graphBuilder = ProjectGraphBuilder(path)
+            val projectGraph = graphBuilder.buildProjectGraph()
             
             // Find the project
             val project = projectGraph.nodes[projectName]

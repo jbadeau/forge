@@ -1,6 +1,6 @@
-package com.forge.graph
+package com.forge.project
 
-import com.forge.core.TargetConfiguration
+import com.forge.plugin.api.TargetConfiguration
 import java.time.Instant
 
 data class TaskGraph(

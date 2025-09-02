@@ -1,14 +1,13 @@
 package com.forge.execution.local
 
-import com.forge.core.ProjectGraph
-import com.forge.core.TargetConfiguration
+import com.forge.project.ProjectGraph
+import com.forge.plugin.api.TargetConfiguration
 import com.forge.execution.ProcessResult
 import com.forge.execution.TaskExecutorPlugin
-import com.forge.graph.Task
-import com.forge.graph.TaskResult
-import com.forge.graph.TaskStatus
+import com.forge.project.Task
+import com.forge.project.TaskResult
+import com.forge.project.TaskStatus
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.nio.file.Path
 import java.time.Instant
 import java.util.concurrent.TimeUnit

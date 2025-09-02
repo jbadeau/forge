@@ -1,37 +1,32 @@
-package com.forge.discovery
+package com.forge.project
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.forge.core.WorkspaceConfiguration
-import com.forge.core.ProjectConfiguration
-import com.forge.core.ProjectGraph
-import com.forge.core.ProjectGraphDependency
-import com.forge.core.ProjectGraphNode
-import com.forge.core.DependencyType
-import com.forge.inference.InferenceEngine
-import com.forge.inference.InferenceResult
+import com.forge.workspace.WorkspaceConfiguration
+import com.forge.plugin.api.ProjectConfiguration
+import com.forge.plugin.api.TargetConfiguration
+import com.forge.plugin.api.InferenceResult
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.*
 
-class ProjectDiscovery(
+class ProjectGraphBuilder(
     private val workspaceRoot: Path,
     private val plugins: List<DiscoveryPlugin> = emptyList(),
     private val enableInference: Boolean = true,
-    private val inferenceEngine: InferenceEngine = InferenceEngine()
+    private val projectDiscoverer: ProjectDiscoverer = ProjectDiscoverer()
 ) {
-    private val logger = LoggerFactory.getLogger(ProjectDiscovery::class.java)
+    private val logger = LoggerFactory.getLogger(ProjectGraphBuilder::class.java)
     private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
     
     // Expose workspace configuration for external access
     var workspaceConfiguration: WorkspaceConfiguration? = null
         private set
     
-    fun discoverProjects(): ProjectGraph {
-        logger.info("Starting project discovery in workspace: $workspaceRoot")
+    fun buildProjectGraph(): ProjectGraph {
+        logger.info("Building project graph for workspace: $workspaceRoot")
         
         val workspaceConfig = loadWorkspaceConfiguration()
         this.workspaceConfiguration = workspaceConfig // Store for external access
@@ -43,7 +38,7 @@ class ProjectDiscovery(
         // Discover projects via inference plugins (package.json, etc.)
         var inferenceResult: InferenceResult? = null
         if (enableInference) {
-            inferenceResult = inferenceEngine.runInference(
+            inferenceResult = projectDiscoverer.discoverProjects(
                 workspaceRoot, 
                 emptyMap()
             )
@@ -67,9 +62,13 @@ class ProjectDiscovery(
         // Build dependency graph
         val dependencies = buildDependencyGraph(configuredProjects, workspaceConfig, inferenceResult)
         
+        // Calculate root projects (no incoming dependencies)
+        val allTargets = dependencies.values.flatten().map { it.target }.toSet()
+        val roots = nodes.keys.filter { it !in allTargets }
+        
         logger.info("Discovered ${nodes.size} projects with ${dependencies.values.sumOf { it.size }} dependencies")
         
-        return ProjectGraph(nodes, dependencies)
+        return ProjectGraph(nodes, dependencies, roots)
     }
     
     private fun loadWorkspaceConfiguration(): WorkspaceConfiguration {
@@ -134,10 +133,10 @@ class ProjectDiscovery(
     }
     
     private fun mergeTargetConfigurations(
-        target: com.forge.core.TargetConfiguration,
-        defaults: com.forge.core.TargetConfiguration
-    ): com.forge.core.TargetConfiguration {
-        return com.forge.core.TargetConfiguration(
+        target: TargetConfiguration,
+        defaults: TargetConfiguration
+    ): TargetConfiguration {
+        return TargetConfiguration(
             executor = target.executor ?: defaults.executor,
             options = defaults.options + target.options,
             configurations = defaults.configurations + target.configurations,

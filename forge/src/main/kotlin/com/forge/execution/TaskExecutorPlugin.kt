@@ -1,9 +1,9 @@
 package com.forge.execution
 
-import com.forge.core.ProjectGraph
-import com.forge.graph.Task
-import com.forge.graph.TaskExecutionPlan
-import com.forge.graph.TaskResult
+import com.forge.project.ProjectGraph
+import com.forge.project.Task
+import com.forge.project.TaskExecutionPlan
+import com.forge.project.TaskResult
 import java.nio.file.Path
 
 /**
@@ -107,7 +107,7 @@ data class ProcessResult(
  * Results of executing multiple tasks
  */
 data class ExecutionResults(
-    val results: Map<String, com.forge.graph.TaskResult>,
+    val results: Map<String, TaskResult>,
     val totalDuration: Long,
     val successCount: Int,
     val failureCount: Int

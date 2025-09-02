@@ -1,7 +1,7 @@
 package com.forge.execution
 
-import com.forge.core.ProjectGraph
-import com.forge.graph.TaskExecutionPlan
+import com.forge.project.ProjectGraph
+import com.forge.project.TaskExecutionPlan
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 

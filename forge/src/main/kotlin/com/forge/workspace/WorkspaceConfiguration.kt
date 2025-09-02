@@ -1,11 +1,11 @@
-package com.forge.core
+package com.forge.workspace
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.forge.execution.TaskExecutorConfig
 import com.forge.plugin.PluginSpec
-import com.forge.plugin.PluginSource
+import com.forge.plugin.api.TargetConfiguration
 import java.nio.file.Path
 import kotlin.io.path.readText
 

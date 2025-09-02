@@ -1,16 +1,15 @@
-package com.forge.discovery
+package com.forge.project
 
-import com.forge.core.DependencyType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.*
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class ProjectDiscoveryTest {
+class ProjectGraphBuilderTest {
     
     private lateinit var testWorkspaceRoot: Path
-    private lateinit var projectDiscovery: ProjectDiscovery
+    private lateinit var projectGraphBuilder: ProjectGraphBuilder
     
     @BeforeEach
     fun setup() {
@@ -18,12 +17,12 @@ class ProjectDiscoveryTest {
         val resourcesPath = this::class.java.classLoader.getResource("test-workspace")?.toURI()
         assertNotNull(resourcesPath, "Test workspace not found in resources")
         testWorkspaceRoot = Paths.get(resourcesPath!!)
-        projectDiscovery = ProjectDiscovery(testWorkspaceRoot)
+        projectGraphBuilder = ProjectGraphBuilder(testWorkspaceRoot)
     }
     
     @Test
     fun `should discover all projects from project json files`() {
-        val projectGraph = projectDiscovery.discoverProjects()
+        val projectGraph = projectGraphBuilder.buildProjectGraph()
         
         // Verify we found all 4 projects
         assertEquals(4, projectGraph.nodes.size, "Should discover 4 projects")
@@ -48,7 +47,7 @@ class ProjectDiscoveryTest {
     
     @Test
     fun `should correctly parse project configurations`() {
-        val projectGraph = projectDiscovery.discoverProjects()
+        val projectGraph = projectGraphBuilder.buildProjectGraph()
         
         // Test UI library project
         val uiProject = projectGraph.getProject("ui")
@@ -83,7 +82,7 @@ class ProjectDiscoveryTest {
     
     @Test
     fun `should build correct dependency graph`() {
-        val projectGraph = projectDiscovery.discoverProjects()
+        val projectGraph = projectGraphBuilder.buildProjectGraph()
         
         println("=== Project Dependencies ===")
         projectGraph.getAllProjects().forEach { project ->
@@ -115,7 +114,7 @@ class ProjectDiscoveryTest {
     
     @Test
     fun `should apply workspace target defaults`() {
-        val projectGraph = projectDiscovery.discoverProjects()
+        val projectGraph = projectGraphBuilder.buildProjectGraph()
         
         // All projects should have build targets with workspace defaults applied
         projectGraph.getAllProjects().forEach { project ->
@@ -147,7 +146,7 @@ class ProjectDiscoveryTest {
     
     @Test
     fun `should filter projects by type`() {
-        val projectGraph = projectDiscovery.discoverProjects()
+        val projectGraph = projectGraphBuilder.buildProjectGraph()
         
         val libraries = projectGraph.getProjectsByType("library")
         assertEquals(2, libraries.size, "Should find 2 libraries")
@@ -172,7 +171,7 @@ class ProjectDiscoveryTest {
     
     @Test
     fun `should filter projects by tag`() {
-        val projectGraph = projectDiscovery.discoverProjects()
+        val projectGraph = projectGraphBuilder.buildProjectGraph()
         
         val sharedProjects = projectGraph.getProjectsByTag("scope:shared")
         assertEquals(2, sharedProjects.size, "Should find 2 shared projects")
@@ -194,7 +193,7 @@ class ProjectDiscoveryTest {
     
     @Test
     fun `should calculate transitive dependencies`() {
-        val projectGraph = projectDiscovery.discoverProjects()
+        val projectGraph = projectGraphBuilder.buildProjectGraph()
         
         // All projects should have no transitive dependencies (implicit dependencies removed)
         val webTransitiveDeps = projectGraph.getTransitiveDependencies("web")
@@ -214,7 +213,7 @@ class ProjectDiscoveryTest {
     
     @Test
     fun `should calculate transitive dependents`() {
-        val projectGraph = projectDiscovery.discoverProjects()
+        val projectGraph = projectGraphBuilder.buildProjectGraph()
         
         // All projects should have no dependents (implicit dependencies removed)
         val utilsDependents = projectGraph.getTransitiveDependents("utils")

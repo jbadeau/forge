@@ -1,7 +1,12 @@
-package com.forge.inference
+package com.forge.project
 
+import com.forge.plugin.api.ProjectConfiguration
 import com.forge.plugin.PluginManager
 import com.forge.plugin.ForgePlugin
+import com.forge.plugin.api.CreateDependenciesContext
+import com.forge.plugin.api.CreateNodesContext
+import com.forge.plugin.api.InferenceResult
+import com.forge.plugin.api.RawProjectGraphDependency
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -10,17 +15,17 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.pathString
 
 /**
- * Engine for running ForgePlugins to discover project configurations
+ * Discovers projects in the workspace using ForgePlugins
  */
-class InferenceEngine(
+class ProjectDiscoverer(
     private val pluginManager: PluginManager = PluginManager()
 ) {
-    private val logger = LoggerFactory.getLogger(InferenceEngine::class.java)
+    private val logger = LoggerFactory.getLogger(ProjectDiscoverer::class.java)
     
     /**
-     * Run inference across all ForgePlugins for the given workspace
+     * Discover projects across all ForgePlugins for the given workspace
      */
-    fun runInference(
+    fun discoverProjects(
         workspaceRoot: Path,
         nxJsonConfiguration: Map<String, Any> = emptyMap()
     ): InferenceResult {
@@ -29,7 +34,7 @@ class InferenceEngine(
             nxJsonConfiguration = nxJsonConfiguration
         )
         
-        val allProjects = mutableMapOf<String, com.forge.core.ProjectConfiguration>()
+        val allProjects = mutableMapOf<String, ProjectConfiguration>()
         val allExternalNodes = mutableMapOf<String, Any>()
         val allDependencies = mutableListOf<RawProjectGraphDependency>()
         

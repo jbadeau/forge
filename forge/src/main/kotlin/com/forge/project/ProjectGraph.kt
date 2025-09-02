@@ -1,10 +1,14 @@
-package com.forge.core
+package com.forge.project
+
+import com.forge.plugin.api.ProjectConfiguration
+import com.forge.plugin.api.DependencyType
 
 import java.nio.file.Path
 
 data class ProjectGraph(
     val nodes: Map<String, ProjectGraphNode>,
     val dependencies: Map<String, List<ProjectGraphDependency>>,
+    val roots: List<String> = emptyList(),
     val externalNodes: Map<String, ProjectGraphExternalNode> = emptyMap(),
     val version: String? = null
 ) {
@@ -22,6 +26,39 @@ data class ProjectGraph(
         nodes.values.filter { it.data.projectType == type }
     
     fun hasProject(name: String): Boolean = nodes.containsKey(name)
+    
+    /**
+     * Returns projects in topologically sorted order (respecting dependencies)
+     */
+    fun topologicalSort(): List<List<String>> {
+        val layers = mutableListOf<List<String>>()
+        val inDegree = nodes.keys.associateWith { node ->
+            dependencies.values.flatten().count { it.target == node }
+        }.toMutableMap()
+        val processed = mutableSetOf<String>()
+        
+        while (processed.size < nodes.size) {
+            val ready = inDegree.entries
+                .filter { it.value == 0 && !processed.contains(it.key) }
+                .map { it.key }
+            
+            if (ready.isEmpty()) {
+                val remaining = nodes.keys - processed
+                throw IllegalStateException("Circular dependency detected in project graph. Remaining projects: $remaining")
+            }
+            
+            layers.add(ready)
+            processed.addAll(ready)
+            
+            ready.forEach { projectId ->
+                getDependencies(projectId).forEach { dep ->
+                    inDegree[dep.target] = inDegree[dep.target]!! - 1
+                }
+            }
+        }
+        
+        return layers
+    }
     
     fun getTransitiveDependencies(projectName: String): Set<String> {
         val visited = mutableSetOf<String>()

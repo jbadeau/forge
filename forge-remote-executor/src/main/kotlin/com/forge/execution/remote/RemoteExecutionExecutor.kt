@@ -1,14 +1,12 @@
 package com.forge.execution.remote
 
 import build.bazel.remote.execution.v2.*
-import com.forge.core.ProjectGraph
+import com.forge.project.ProjectGraph
 import com.forge.execution.ExecutionResults
-import com.forge.graph.Task
-import com.forge.graph.TaskExecutionPlan
-import com.forge.graph.TaskResult
-import com.forge.graph.TaskStatus
-import com.google.longrunning.Operation
-import com.google.protobuf.Any
+import com.forge.project.Task
+import com.forge.project.TaskExecutionPlan
+import com.forge.project.TaskResult
+import com.forge.project.TaskStatus
 import com.google.protobuf.ByteString
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.last

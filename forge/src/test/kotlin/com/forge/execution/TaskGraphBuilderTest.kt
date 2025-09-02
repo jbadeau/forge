@@ -1,6 +1,7 @@
 package com.forge.execution
 
-import com.forge.discovery.ProjectDiscovery
+import com.forge.project.ProjectGraphBuilder
+import com.forge.project.TaskGraphBuilder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.*
@@ -18,8 +19,8 @@ class TaskGraphBuilderTest {
         assertNotNull(resourcesPath, "Test workspace not found in resources")
         testWorkspaceRoot = Paths.get(resourcesPath!!)
         
-        val discovery = ProjectDiscovery(testWorkspaceRoot)
-        val projectGraph = discovery.discoverProjects()
+        val graphBuilder = ProjectGraphBuilder(testWorkspaceRoot)
+        val projectGraph = graphBuilder.buildProjectGraph()
         taskGraphBuilder = TaskGraphBuilder(projectGraph)
     }
     
