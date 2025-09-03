@@ -121,9 +121,18 @@ class JavaScriptProjectInference : ProjectGraphInferrer<JavaScriptInferenceOptio
     }
     
     private fun inferProjectType(packageJson: Map<String, Any>): String {
-        val scripts = packageJson["scripts"] as? Map<String, String> ?: emptyMap()
-        val dependencies = packageJson["dependencies"] as? Map<String, String> ?: emptyMap()
-        val devDependencies = packageJson["devDependencies"] as? Map<String, String> ?: emptyMap()
+        val scripts = when (val s = packageJson["scripts"]) {
+            is Map<*, *> -> s.entries.associate { (k, v) -> k.toString() to v.toString() }
+            else -> emptyMap<String, String>()
+        }
+        val dependencies = when (val d = packageJson["dependencies"]) {
+            is Map<*, *> -> d.entries.associate { (k, v) -> k.toString() to v.toString() }
+            else -> emptyMap<String, String>()
+        }
+        val devDependencies = when (val dd = packageJson["devDependencies"]) {
+            is Map<*, *> -> dd.entries.associate { (k, v) -> k.toString() to v.toString() }
+            else -> emptyMap<String, String>()
+        }
         
         return when {
             scripts.containsKey("start") || dependencies.containsKey("express") || 
@@ -138,8 +147,14 @@ class JavaScriptProjectInference : ProjectGraphInferrer<JavaScriptInferenceOptio
     private fun extractTags(packageJson: Map<String, Any>, projectDir: Path): List<String> {
         val tags = mutableListOf<String>()
         
-        val dependencies = packageJson["dependencies"] as? Map<String, String> ?: emptyMap()
-        val devDependencies = packageJson["devDependencies"] as? Map<String, String> ?: emptyMap()
+        val dependencies = when (val d = packageJson["dependencies"]) {
+            is Map<*, *> -> d.entries.associate { (k, v) -> k.toString() to v.toString() }
+            else -> emptyMap<String, String>()
+        }
+        val devDependencies = when (val dd = packageJson["devDependencies"]) {
+            is Map<*, *> -> dd.entries.associate { (k, v) -> k.toString() to v.toString() }
+            else -> emptyMap<String, String>()
+        }
         val allDeps = dependencies + devDependencies
         
         // Framework tags
@@ -183,7 +198,10 @@ class JavaScriptProjectInference : ProjectGraphInferrer<JavaScriptInferenceOptio
         projectDir: Path
     ): Map<String, TargetConfiguration> {
         val targets = mutableMapOf<String, TargetConfiguration>()
-        val scripts = packageJson["scripts"] as? Map<String, String> ?: emptyMap()
+        val scripts = when (val s = packageJson["scripts"]) {
+            is Map<*, *> -> s.entries.associate { (k, v) -> k.toString() to v.toString() }
+            else -> emptyMap<String, String>()
+        }
         
         // Build target
         if (scripts.containsKey("build")) {
@@ -274,7 +292,10 @@ class JavaScriptProjectInference : ProjectGraphInferrer<JavaScriptInferenceOptio
             val packageJson = objectMapper.readValue<Map<String, Any>>(packageJsonPath.readText())
             
             listOf("dependencies", "devDependencies", "peerDependencies").forEach { depType ->
-                val deps = packageJson[depType] as? Map<String, String> ?: emptyMap()
+                val deps = when (val d = packageJson[depType]) {
+                    is Map<*, *> -> d.entries.associate { (k, v) -> k.toString() to v.toString() }
+                    else -> emptyMap<String, String>()
+                }
                 
                 deps.forEach { (packageName, version) ->
                     val targetProject = projectLookup[packageName]

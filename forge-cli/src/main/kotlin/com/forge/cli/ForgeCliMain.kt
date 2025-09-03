@@ -168,7 +168,7 @@ private fun handleJsonRpcResponse(response: JsonRpcResponse) {
         when (response.result) {
             is String -> println(response.result)
             is Map<*, *> -> {
-                val result = response.result as Map<String, Any>
+                val result = (response.result as Map<*, *>).entries.associate { (k, v) -> k.toString() to v }
                 if (result.containsKey("message")) {
                     println(result["message"])
                 }

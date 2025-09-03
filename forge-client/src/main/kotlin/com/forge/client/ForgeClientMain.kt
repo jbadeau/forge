@@ -141,7 +141,7 @@ private fun handleJsonRpcResponse(response: JsonRpcResponse) {
         when (response.result) {
             is String -> println(response.result)
             is Map<*, *> -> {
-                val result = response.result as Map<String, Any>
+                val result = response.result.entries.associate { (k, v) -> k.toString() to v }
                 if (result.containsKey("message")) {
                     println(result["message"])
                 }
@@ -161,7 +161,7 @@ private fun handleJsonRpcResponse(response: JsonRpcResponse) {
                 response.result.forEach { item ->
                     when (item) {
                         is Map<*, *> -> {
-                            val project = item as Map<String, Any>
+                            val project = item.entries.associate { (k, v) -> k.toString() to v }
                             val name = project["name"]
                             val type = project["type"]
                             println("$name ($type)")

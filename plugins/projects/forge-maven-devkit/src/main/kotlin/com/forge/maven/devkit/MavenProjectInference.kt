@@ -163,7 +163,10 @@ class MavenProjectInference : ProjectGraphInferrer<MavenInferenceOptions> {
         }
         
         // Check dependencies for framework tags
-        val dependencies = pom["dependencies"] as? Map<String, Any> ?: emptyMap()
+        val dependencies = when (val deps = pom["dependencies"]) {
+            is Map<*, *> -> deps.entries.associate { (k, v) -> k.toString() to v.toString() }
+            else -> emptyMap<String, String>()
+        }
         
         // Spring Boot detection
         if (dependencies.toString().contains("spring-boot")) {

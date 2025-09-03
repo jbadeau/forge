@@ -45,7 +45,10 @@ class RemoteTaskExecutorPlugin : ExecutorPlugin {
                 ?: return@withContext ExecutionResult.failure(1, "No command specified")
             
             val workingDir = action.inputs["cwd"] as? String ?: context.workspaceRoot
-            val env = (action.inputs["env"] as? Map<String, String>) ?: emptyMap()
+            val env = when (val e = action.inputs["env"]) {
+                is Map<*, *> -> e.entries.associate { (k, v) -> k.toString() to v.toString() }
+                else -> emptyMap<String, String>()
+            }
             
             // Execute via remote execution
             val result = executeRemotely(command, workingDir, env, io)
@@ -128,7 +131,10 @@ data class RemoteExecutionConfig(
                 useTls = (config["useTls"] as? Boolean) ?: false,
                 maxConnections = (config["maxConnections"] as? Number)?.toInt() ?: 100,
                 timeoutSeconds = (config["defaultTimeoutSeconds"] as? Number)?.toLong() ?: 300L,
-                platform = (config["platform"] as? Map<String, String>) ?: emptyMap()
+                platform = when (val p = config["platform"]) {
+                    is Map<*, *> -> p.entries.associate { (k, v) -> k.toString() to v.toString() }
+                    else -> emptyMap<String, String>()
+                }
             )
         }
     }

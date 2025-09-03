@@ -50,7 +50,10 @@ class LocalExecutorPlugin : ExecutorPlugin {
             ?: return@withContext ExecutionResult.failure(1, "No command specified")
             
         val workingDir = action.inputs["cwd"] as? String ?: context.workspaceRoot
-        val env = (action.inputs["env"] as? Map<String, String>) ?: emptyMap()
+        val env = when (val e = action.inputs["env"]) {
+            is Map<*, *> -> e.entries.associate { (k, v) -> k.toString() to v.toString() }
+            else -> emptyMap<String, String>()
+        }
         val timeout = (action.inputs["timeout"] as? Number)?.toLong() ?: 300L
         
         try {
