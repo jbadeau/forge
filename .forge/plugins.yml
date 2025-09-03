@@ -1,0 +1,86 @@
+# Plugin configuration for Forge
+
+# PROJECT PLUGINS - Discover and configure projects from files
+projectPlugins:
+  - id: com.forge.maven
+    enabled: true
+    config:
+      includeTestProjects: true
+      buildTargetName: compile
+      
+  - id: com.forge.javascript
+    enabled: true
+    config:
+      buildTargetName: build
+      testTargetName: test
+      
+  - id: com.forge.docker
+    enabled: true
+    config:
+      buildTargetName: docker-build
+      pushTargetName: docker-push
+
+# ACTION PLUGINS - Add cross-cutting concerns to tasks
+actionPlugins:
+  - id: forge.cache
+    enabled: true
+    config:
+      enabled: true
+      localCacheDir: ~/.forge/cache
+      maxSize: 10240  # 10GB in MB
+
+# EXECUTOR PLUGINS - Execute tasks in different environments
+executorPlugins:
+  - id: forge.executor.local
+    enabled: true
+    config:
+      maxParallelism: 8
+      defaultTimeout: 300
+
+# Default executor for different contexts
+executors:
+  default: forge.executor.local
+  
+  # Profiles for different execution contexts
+  profiles:
+    - name: ci
+      executor: forge.executor.local
+      config:
+        maxParallelism: 4
+        
+    - name: development
+      executor: forge.executor.local
+      config:
+        maxParallelism: 8
+        
+# Plugin discovery settings
+discovery:
+  # Directories to scan for plugin JARs
+  pluginDirectories:
+    - ~/.forge/plugins/projects    # Project plugins
+    - ~/.forge/plugins/actions     # Action plugins  
+    - ~/.forge/plugins/executors   # Executor plugins
+  
+  # Legacy single directory (deprecated but supported)
+  pluginDirectory: ~/.forge/plugins
+  
+  # Auto-load plugins via ServiceLoader
+  serviceLoader: true
+  
+  # Custom plugins
+  custom:
+    # Example external plugin
+    - id: company.security-scanner
+      version: 1.2.0
+      repository: https://maven.company.com/repository
+      enabled: true
+      config:
+        scanners: [snyk, trivy]
+        failOn: high
+        
+    # Example local plugin
+    - id: local.custom-build-tool
+      path: ./plugins/custom-build-tool.jar
+      enabled: true
+      config:
+        customOption: value
