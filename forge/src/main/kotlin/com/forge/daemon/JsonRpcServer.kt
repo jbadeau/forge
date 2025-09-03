@@ -2,12 +2,8 @@ package com.forge.daemon
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.forge.observability.ForgeTracing
-import com.forge.observability.withSpan
 import com.forge.project.ProjectGraphBuilder
 import com.forge.protocol.*
-import io.opentelemetry.api.trace.SpanKind
-import io.opentelemetry.context.Context
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.io.*
@@ -17,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Modern JSON-RPC 2.0 server with OpenTelemetry tracing and LSP-style protocol.
+ * Modern JSON-RPC 2.0 server with LSP-style protocol.
  * Provides foundation for action graph execution and multi-client support.
  */
 class JsonRpcServer {
@@ -43,11 +39,6 @@ class JsonRpcServer {
             return@withContext
         }
         
-        // Initialize OpenTelemetry
-        ForgeTracing.initialize(
-            serviceName = "forge-daemon",
-            serviceVersion = "1.0.0"
-        )
         
         running.set(true)
         logger.info("Forge JSON-RPC daemon started")
@@ -77,44 +68,40 @@ class JsonRpcServer {
     }
     
     private suspend fun handleMessage(line: String, output: BufferedWriter) = withContext(Dispatchers.IO) {
-        withSpan("jsonrpc.request", SpanKind.SERVER) { span ->
-            try {
-                val request = parseRequest(line)
-                val method = when (request) {
-                    is JsonRpcRequest -> request.method
-                    is JsonRpcNotification -> request.method
-                    else -> "unknown"
-                }
-                span.setAttribute("jsonrpc.method", method)
-                
-                logger.debug("Processing JSON-RPC request: $method")
-                
-                val response = when (request) {
-                    is JsonRpcRequest -> processRequest(request)
-                    is JsonRpcNotification -> {
-                        processNotification(request)
-                        null
-                    }
-                    else -> null
-                }
-                
-                response?.let { 
-                    sendResponse(it, output) 
-                }
-                
-            } catch (e: Exception) {
-                logger.error("Error handling JSON-RPC message", e)
-                span.recordException(e)
-                
-                val errorResponse = JsonRpcResponse(
-                    id = JsonRpcId.NullId,
-                    error = JsonRpcError(
-                        code = ForgeErrorCodes.PARSE_ERROR,
-                        message = "Parse error: ${e.message}"
-                    )
-                )
-                sendResponse(errorResponse, output)
+        try {
+            val request = parseRequest(line)
+            val method = when (request) {
+                is JsonRpcRequest -> request.method
+                is JsonRpcNotification -> request.method
+                else -> "unknown"
             }
+            
+            logger.debug("Processing JSON-RPC request: $method")
+            
+            val response = when (request) {
+                is JsonRpcRequest -> processRequest(request)
+                is JsonRpcNotification -> {
+                    processNotification(request)
+                    null
+                }
+                else -> null
+            }
+            
+            response?.let { 
+                sendResponse(it, output) 
+            }
+            
+        } catch (e: Exception) {
+            logger.error("Error handling JSON-RPC message", e)
+            
+            val errorResponse = JsonRpcResponse(
+                id = JsonRpcId.NullId,
+                error = JsonRpcError(
+                    code = ForgeErrorCodes.PARSE_ERROR,
+                    message = "Parse error: ${e.message}"
+                )
+            )
+            sendResponse(errorResponse, output)
         }
     }
     
@@ -191,30 +178,28 @@ class JsonRpcServer {
     }
     
     // Protocol method handlers
-    private suspend fun handleInitialize(params: Any?): InitializeResult = 
-        withSpan("forge.initialize", SpanKind.INTERNAL) { span ->
-            if (initialized.get()) {
-                throw RuntimeException("Server already initialized")
-            }
-            
-            serverCapabilities = ServerCapabilities(
-                features = ServerFeatures(
-                    tools = ToolFeatures(nix = false, system = true),
-                    cache = CacheFeatures(local = true),
-                    graph = GraphFeatures(fingerprints = true, advice = false),
-                    artifacts = ArtifactFeatures(fingerprinting = true, provenance = false)
-                )
-            )
-            
-            initialized.set(true)
-            span.addEvent("server_initialized")
-            logger.info("JSON-RPC server initialized")
-            
-            InitializeResult(
-                serverInfo = ServerInfo(version = "1.0.0"),
-                capabilities = serverCapabilities!!
-            )
+    private suspend fun handleInitialize(params: Any?): InitializeResult {
+        if (initialized.get()) {
+            throw RuntimeException("Server already initialized")
         }
+        
+        serverCapabilities = ServerCapabilities(
+            features = ServerFeatures(
+                tools = ToolFeatures(nix = false, system = true),
+                cache = CacheFeatures(local = true),
+                graph = GraphFeatures(fingerprints = true, advice = false),
+                artifacts = ArtifactFeatures(fingerprinting = true, provenance = false)
+            )
+        )
+        
+        initialized.set(true)
+        logger.info("JSON-RPC server initialized")
+        
+        return InitializeResult(
+            serverInfo = ServerInfo(version = "1.0.0"),
+            capabilities = serverCapabilities!!
+        )
+    }
     
     private fun handleShutdown(): String {
         logger.info("Shutdown requested")
@@ -222,34 +207,28 @@ class JsonRpcServer {
         return "Server shutting down"
     }
     
-    private suspend fun handleWorkspaceScan(params: Any?): Map<String, Any> = 
-        withSpan("forge.workspace.scan", SpanKind.INTERNAL) { span ->
-            val workspaceRoot = Paths.get("").toAbsolutePath()
-            val graphBuilder = ProjectGraphBuilder(workspaceRoot)
-            val projectGraph = graphBuilder.buildProjectGraph()
-            
-            span.setAttribute("forge.projects.count", projectGraph.nodes.size.toLong())
-            
-            mapOf(
-                "projects" to projectGraph.nodes.size,
-                "scannedAt" to Instant.now().toString()
-            )
-        }
+    private suspend fun handleWorkspaceScan(params: Any?): Map<String, Any> {
+        val workspaceRoot = Paths.get("").toAbsolutePath()
+        val graphBuilder = ProjectGraphBuilder(workspaceRoot)
+        val projectGraph = graphBuilder.buildProjectGraph()
+        
+        return mapOf(
+            "projects" to projectGraph.nodes.size,
+            "scannedAt" to Instant.now().toString()
+        )
+    }
     
-    private suspend fun handleRunStart(params: Any?): RunStartResult = 
-        withSpan("forge.run.start", SpanKind.SERVER) { span ->
-            val runId = "run-${System.currentTimeMillis()}"
-            span.setAttribute("forge.run.id", runId)
-            
-            // For now, create a simple run context without actual execution
-            activeRuns[runId] = RunContext(runId, "workspace-1", Instant.now(), null)
-            
-            span.addEvent("run_queued")
-            logger.info("Run queued: runId=$runId")
-            
-            RunStartResult(
-                runId = runId,
-                graphId = "graph-${System.currentTimeMillis()}",
+    private suspend fun handleRunStart(params: Any?): RunStartResult {
+        val runId = "run-${System.currentTimeMillis()}"
+        
+        // For now, create a simple run context without actual execution
+        activeRuns[runId] = RunContext(runId, "workspace-1", Instant.now(), null)
+        
+        logger.info("Run queued: runId=$runId")
+        
+        return RunStartResult(
+            runId = runId,
+            graphId = "graph-${System.currentTimeMillis()}",
                 totalActions = 1 // Placeholder
             )
         }

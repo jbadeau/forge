@@ -18,23 +18,23 @@ class PluginClassLoader(
     private val logger = LoggerFactory.getLogger(PluginClassLoader::class.java)
     
     /**
-     * Load a ForgePlugin from this JAR using ServiceLoader
+     * Load a ProjectPlugin from this JAR using ServiceLoader
      */
-    fun loadPlugin(): ForgePlugin {
+    fun loadPlugin(): ProjectPlugin {
         logger.debug("Loading plugin from: $pluginJar")
         
         // Read service file directly from this JAR to avoid parent classloader pollution
         val plugins = loadPluginsFromJar()
         
         return when (plugins.size) {
-            0 -> throw PluginLoadException("No ForgePlugin implementation found in $pluginJar")
+            0 -> throw PluginLoadException("No ProjectPlugin implementation found in $pluginJar")
             1 -> {
                 val plugin = plugins.first()
                 logger.info("Loaded plugin: ${plugin.metadata.id}@${plugin.metadata.version}")
                 plugin
             }
             else -> {
-                logger.warn("Multiple ForgePlugin implementations found in $pluginJar, using first one")
+                logger.warn("Multiple ProjectPlugin implementations found in $pluginJar, using first one")
                 val plugin = plugins.first()
                 logger.info("Loaded plugin: ${plugin.metadata.id}@${plugin.metadata.version}")
                 plugin
@@ -42,9 +42,9 @@ class PluginClassLoader(
         }
     }
     
-    private fun loadPluginsFromJar(): List<ForgePlugin> {
-        val plugins = mutableListOf<ForgePlugin>()
-        val serviceResource = "META-INF/services/com.forge.plugin.ForgePlugin"
+    private fun loadPluginsFromJar(): List<ProjectPlugin> {
+        val plugins = mutableListOf<ProjectPlugin>()
+        val serviceResource = "META-INF/services/com.forge.plugin.ProjectPlugin"
         
         // Read the service file from this specific JAR
         val serviceUrl = findResource(serviceResource) 
@@ -57,7 +57,7 @@ class PluginClassLoader(
         classNames.forEach { className ->
             try {
                 val pluginClass = loadClass(className)
-                val plugin = pluginClass.getDeclaredConstructor().newInstance() as ForgePlugin
+                val plugin = pluginClass.getDeclaredConstructor().newInstance() as ProjectPlugin
                 plugins.add(plugin)
                 logger.debug("Loaded plugin class: $className")
             } catch (e: Exception) {
@@ -69,12 +69,12 @@ class PluginClassLoader(
     }
     
     /**
-     * Load all ForgePlugins from this JAR
+     * Load all ProjectPlugins from this JAR
      */
-    fun loadAllPlugins(): List<ForgePlugin> {
+    fun loadAllPlugins(): List<ProjectPlugin> {
         logger.debug("Loading all plugins from: $pluginJar")
         
-        val serviceLoader = ServiceLoader.load(ForgePlugin::class.java, this)
+        val serviceLoader = ServiceLoader.load(ProjectPlugin::class.java, this)
         val plugins = serviceLoader.toList()
         
         logger.info("Loaded ${plugins.size} plugin(s) from $pluginJar")

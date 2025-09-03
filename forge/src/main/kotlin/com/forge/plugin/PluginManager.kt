@@ -18,21 +18,20 @@ class PluginManager(
     /**
      * Load plugins for a workspace using ServiceLoader for built-in plugins
      */
-    fun loadPlugins(workspaceRoot: Path): List<ForgePlugin> {
+    fun loadPlugins(workspaceRoot: Path): List<ProjectPlugin> {
         logger.info("Loading plugins for workspace: $workspaceRoot")
         
-        val plugins = mutableListOf<ForgePlugin>()
+        val plugins = mutableListOf<ProjectPlugin>()
         
         // Load built-in plugins using ServiceLoader
         try {
-            val serviceLoader = ServiceLoader.load(ForgePlugin::class.java)
+            val serviceLoader = ServiceLoader.load(ProjectPlugin::class.java)
             serviceLoader.forEach { plugin ->
                 try {
-                    plugin.initialize()
                     plugins.add(plugin)
                     logger.info("Loaded built-in plugin: ${plugin.metadata.name} v${plugin.metadata.version}")
                 } catch (e: Exception) {
-                    logger.error("Failed to initialize built-in plugin: ${plugin.metadata.id}", e)
+                    logger.error("Failed to load built-in plugin: ${plugin.metadata.id}", e)
                 }
             }
         } catch (e: Exception) {
@@ -46,10 +45,10 @@ class PluginManager(
     /**
      * Load plugins from specifications
      */
-    fun loadPlugins(pluginSpecs: List<PluginSpec>): List<ForgePlugin> {
+    fun loadPlugins(pluginSpecs: List<PluginSpec>): List<ProjectPlugin> {
         logger.info("Loading ${pluginSpecs.size} specified plugin(s)")
         
-        val plugins = mutableListOf<ForgePlugin>()
+        val plugins = mutableListOf<ProjectPlugin>()
         
         pluginSpecs.forEach { spec ->
             try {
@@ -68,7 +67,7 @@ class PluginManager(
     /**
      * Load a specific plugin
      */
-    fun loadPlugin(spec: PluginSpec): ForgePlugin {
+    fun loadPlugin(spec: PluginSpec): ProjectPlugin {
         // Check if already loaded
         loadedPlugins[spec.id]?.let { loadedPlugin ->
             if (loadedPlugin.version == spec.version) {
@@ -147,14 +146,14 @@ class PluginManager(
     /**
      * Get all loaded plugins
      */
-    fun getLoadedPlugins(): List<ForgePlugin> {
+    fun getLoadedPlugins(): List<ProjectPlugin> {
         return loadedPlugins.values.map { it.plugin }
     }
     
     /**
      * Get plugin by ID
      */
-    fun getPlugin(pluginId: String): ForgePlugin? {
+    fun getPlugin(pluginId: String): ProjectPlugin? {
         return loadedPlugins[pluginId]?.plugin
     }
     
@@ -200,7 +199,7 @@ class PluginManager(
  * Represents a loaded plugin with its metadata
  */
 private data class LoadedPlugin(
-    val plugin: ForgePlugin,
+    val plugin: ProjectPlugin,
     val spec: PluginSpec,
     val version: String,
     val classLoader: PluginClassLoader

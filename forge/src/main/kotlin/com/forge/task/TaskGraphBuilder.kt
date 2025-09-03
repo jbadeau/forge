@@ -1,4 +1,4 @@
-package com.forge.project
+package com.forge.task
 
 import com.forge.project.ProjectGraph
 import com.forge.plugin.api.ProjectConfiguration
@@ -41,11 +41,14 @@ class TaskGraphBuilder(
         
         logger.info("Built task graph with ${tasks.size} tasks and ${roots.size} root tasks")
         
-        return TaskGraph(
-            tasks = tasks,
-            dependencies = dependencies.mapValues { it.value.toList() },
-            roots = roots
-        )
+        val graph = TaskGraph()
+        
+        // Add all tasks to the graph
+        tasks.values.forEach { task ->
+            graph.addTask(task)
+        }
+        
+        return graph
     }
     
     private fun createTaskWithDependencies(
@@ -71,11 +74,11 @@ class TaskGraphBuilder(
         
         // Create the main task
         tasks[taskId] = Task(
-            id = taskId,
-            projectName = projectName,
-            targetName = targetName,
-            target = target,
-            hash = generateTaskHash(taskId, target, projectConfig)
+            id = TaskId(taskId),
+            project = projectName,
+            target = targetName,
+            configuration = target,
+            dependencies = emptySet() // Will be populated later
         )
         dependencies[taskId] = mutableListOf()
         
@@ -92,11 +95,11 @@ class TaskGraphBuilder(
         allTasks: Map<String, Task>,
         dependencies: MutableMap<String, MutableList<String>>
     ) {
-        val dependsOn = task.target.dependsOn
+        val dependsOn = task.configuration.dependsOn
         
         dependsOn.forEach { depString ->
             val resolvedDeps = resolveDependencyString(depString, task, allTasks)
-            dependencies[task.id]?.addAll(resolvedDeps)
+            dependencies[task.id.value]?.addAll(resolvedDeps)
         }
     }
     
@@ -109,7 +112,7 @@ class TaskGraphBuilder(
             // ^target - depends on same target in all dependencies of current project
             depString.startsWith("^") -> {
                 val targetName = depString.substring(1)
-                resolveProjectDependencies(currentTask.projectName, targetName, allTasks)
+                resolveProjectDependencies(currentTask.project, targetName, allTasks)
             }
             
             // self:target - depends on specific target in same project
@@ -117,7 +120,7 @@ class TaskGraphBuilder(
                 val parts = depString.split(":")
                 if (parts.size == 2) {
                     val (projectName, targetName) = parts
-                    val resolvedProject = if (projectName == "self") currentTask.projectName else projectName
+                    val resolvedProject = if (projectName == "self") currentTask.project else projectName
                     val taskId = "$resolvedProject:$targetName"
                     if (allTasks.containsKey(taskId)) listOf(taskId) else emptyList()
                 } else {
@@ -127,7 +130,7 @@ class TaskGraphBuilder(
             
             // target - depends on same target in same project
             else -> {
-                val taskId = "${currentTask.projectName}:$depString"
+                val taskId = "${currentTask.project}:$depString"
                 if (allTasks.containsKey(taskId)) listOf(taskId) else emptyList()
             }
         }

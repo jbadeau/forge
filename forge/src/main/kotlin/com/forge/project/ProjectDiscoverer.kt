@@ -2,7 +2,7 @@ package com.forge.project
 
 import com.forge.plugin.api.ProjectConfiguration
 import com.forge.plugin.PluginManager
-import com.forge.plugin.ForgePlugin
+import com.forge.plugin.ProjectPlugin
 import com.forge.plugin.api.CreateDependenciesContext
 import com.forge.plugin.api.CreateNodesContext
 import com.forge.plugin.api.InferenceResult
@@ -39,14 +39,14 @@ class ProjectDiscoverer(
         val allDependencies = mutableListOf<RawProjectGraphDependency>()
         
         // Load ForgePlugins from workspace configuration
-        val forgePlugins = try {
+        val projectPlugins = try {
             pluginManager.loadPlugins(workspaceRoot)
         } catch (e: Exception) {
-            logger.warn("Failed to load ForgePlugins, using built-in plugins: ${e.message}")
+            logger.warn("Failed to load ProjectPlugins, using built-in plugins: ${e.message}")
             getBuiltInPlugins()
         }
         
-        forgePlugins.forEach { plugin ->
+        projectPlugins.forEach { plugin ->
             try {
                 logger.debug("Running inference plugin: ${plugin.metadata.id}")
                 val matchingFiles = findMatchingFiles(workspaceRoot, plugin.metadata.createNodesPattern)
@@ -95,7 +95,7 @@ class ProjectDiscoverer(
             nxJsonConfiguration = nxJsonConfiguration
         )
         
-        forgePlugins.forEach { plugin ->
+        projectPlugins.forEach { plugin ->
             try {
                 logger.debug("Running dependency inference for plugin: ${plugin.metadata.id}")
                 val options = plugin.defaultOptions
@@ -141,7 +141,7 @@ class ProjectDiscoverer(
     /**
      * Get built-in plugins when external plugins fail to load
      */
-    private fun getBuiltInPlugins(): List<ForgePlugin> {
+    private fun getBuiltInPlugins(): List<ProjectPlugin> {
         // Return built-in implementations of common plugins
         return listOf(
             // We'll add built-in plugins here if needed
