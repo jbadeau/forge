@@ -10,9 +10,9 @@
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>forge-maven-plugin</artifactId>
-    <name>Forge Maven Plugin</name>
-    <description>Maven project nature and support for Forge</description>
+    <artifactId>forge-spring-boot-plugin</artifactId>
+    <name>Forge Spring Boot Plugin</name>
+    <description>Spring Boot nature and support for Forge</description>
 
     <dependencies>
         <dependency>
@@ -28,16 +28,6 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven.shared</groupId>
-            <artifactId>maven-invoker</artifactId>
-            <version>3.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-model</artifactId>
-            <version>3.9.6</version>
         </dependency>
     </dependencies>
 </project>

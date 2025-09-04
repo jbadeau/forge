@@ -37,7 +37,7 @@ interface ProjectPlugin {
         get() = null
     
     /**
-     * Create project nodes from configuration files
+     * Create nodes from configuration files
      */
     fun createNodes(
         configFiles: List<String>, 
@@ -46,9 +46,9 @@ interface ProjectPlugin {
     ): CreateNodesResult
     
     /**
-     * Create dependencies between projects
+     * Create edges between nodes
      */
-    fun createDependencies(
+    fun createEdges(
         options: Any?, 
         context: CreateDependenciesContext
     ): List<RawProjectGraphDependency> = emptyList()

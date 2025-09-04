@@ -100,7 +100,7 @@ class ProjectDiscoverer(
                 logger.debug("Running dependency inference for plugin: ${plugin.metadata.id}")
                 val options = plugin.defaultOptions
                 
-                val dependencies = plugin.createDependencies(options, dependenciesContext)
+                val dependencies = plugin.createEdges(options, dependenciesContext)
                 
                 allDependencies.addAll(dependencies)
                 logger.info("Plugin '${plugin.metadata.id}' inferred ${dependencies.size} dependencies")

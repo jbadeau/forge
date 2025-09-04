@@ -1,98 +1,35 @@
 package com.forge.maven.plugin
 
-import com.forge.maven.devkit.MavenProjectInference
-import com.forge.maven.devkit.MavenInferenceOptions
-import com.forge.plugin.api.CreateNodesContext
-import com.forge.plugin.api.CreateNodesResult
-import com.forge.plugin.api.CreateDependenciesContext
-import com.forge.plugin.api.RawProjectGraphDependency
+import com.forge.plugin.ForgePlugin
 import com.forge.plugin.ProjectPlugin
-import com.forge.plugin.ProjectPluginMetadata
-import com.forge.plugin.ValidationResult
+import com.forge.project.Project
+import com.forge.workspace.Workspace
+import java.nio.file.Path
 
 /**
- * Options for Maven plugin
+ * Maven project plugin that provides both nature and project facilities
  */
-data class MavenPluginOptions(
-    val buildTargetName: String = "compile",
-    val testTargetName: String = "test",
-    val packageTargetName: String = "package"
-)
-
-/**
- * ProjectPlugin implementation for Maven projects
- */
-class MavenProjectPlugin : ProjectPlugin {
+class MavenProjectPlugin : ForgePlugin, ProjectPlugin {
     
-    private val inference = MavenProjectInference()
+    override val id = "maven"
+    override val name = "Maven Plugin"
+    override val version = "1.0.0"
     
-    override val metadata = ProjectPluginMetadata(
-        id = "com.forge.maven",
-        name = "Maven Plugin",
-        version = "1.0.0",
-        description = "Support for Maven/Java projects",
-        createNodesPattern = "**/pom.xml",
-        supportedFiles = listOf("pom.xml"),
-        author = "Forge Team",
-        homepage = "https://github.com/forge/plugin-maven",
-        tags = listOf("maven", "java", "kotlin", "scala")
-    )
-    
-    override val defaultOptions = MavenPluginOptions()
-    
-    override fun createNodes(
-        configFiles: List<String>, 
-        options: Any?, 
-        context: CreateNodesContext
-    ): CreateNodesResult {
-        val opts = parseOptions(options)
-        val inferenceOptions = MavenInferenceOptions(
-            buildTargetName = opts.buildTargetName,
-            testTargetName = opts.testTargetName,
-            packageTargetName = opts.packageTargetName
-        )
-        
-        val projects = inference.inferProjects(configFiles, inferenceOptions, context)
-        return CreateNodesResult(projects = projects)
+    override fun initialize(workspace: Workspace) {
+        // Register Maven nature
+        // Nature registration will be handled by service loader
     }
     
-    override fun createDependencies(
-        options: Any?, 
-        context: CreateDependenciesContext
-    ): List<RawProjectGraphDependency> {
-        val opts = parseOptions(options)
-        val inferenceOptions = MavenInferenceOptions(
-            buildTargetName = opts.buildTargetName,
-            testTargetName = opts.testTargetName,
-            packageTargetName = opts.packageTargetName
-        )
-        
-        return inference.inferProjectDependencies(inferenceOptions, context)
-    }
-    
-    override fun validateOptions(options: Any?): ValidationResult {
-        return try {
-            parseOptions(options)
-            ValidationResult.valid()
-        } catch (e: Exception) {
-            ValidationResult.invalid("Invalid options: ${e.message}")
+    override fun discover(workspace: Workspace, projectPath: Path): Project? {
+        if (!MavenUtils.isMavenProject(projectPath)) {
+            return null
         }
+        
+        val inference = MavenProjectInference()
+        return inference.inferProject(workspace, projectPath)
     }
     
-    private fun parseOptions(options: Any?): MavenPluginOptions {
-        return when (options) {
-            null -> defaultOptions
-            is MavenPluginOptions -> options
-            is Map<*, *> -> {
-                @Suppress("UNCHECKED_CAST")
-                val map = options as Map<String, Any>
-                MavenPluginOptions(
-                    buildTargetName = map["buildTargetName"] as? String ?: defaultOptions.buildTargetName,
-                    testTargetName = map["testTargetName"] as? String ?: defaultOptions.testTargetName,
-                    packageTargetName = map["packageTargetName"] as? String ?: defaultOptions.packageTargetName
-                )
-            }
-            else -> throw IllegalArgumentException("Invalid options type: ${options::class}")
-        }
+    override fun shutdown() {
+        // Cleanup if needed
     }
 }

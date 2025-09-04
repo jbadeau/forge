@@ -10,9 +10,9 @@
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>forge-maven-plugin</artifactId>
-    <name>Forge Maven Plugin</name>
-    <description>Maven project nature and support for Forge</description>
+    <artifactId>forge-gradle-plugin</artifactId>
+    <name>Forge Gradle Plugin</name>
+    <description>Gradle project nature and support for Forge</description>
 
     <dependencies>
         <dependency>
@@ -29,15 +29,13 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
         </dependency>
+        <!-- Gradle tooling API is optional - not needed for basic functionality -->
+        <!--
         <dependency>
-            <groupId>org.apache.maven.shared</groupId>
-            <artifactId>maven-invoker</artifactId>
-            <version>3.2.0</version>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-tooling-api</artifactId>
+            <version>8.5</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-model</artifactId>
-            <version>3.9.6</version>
-        </dependency>
+        -->
     </dependencies>
 </project>
