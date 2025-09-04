@@ -19,9 +19,9 @@ data class ExecutorPluginMetadata(
 )
 
 /**
- * Plugin that provides task execution capabilities
+ * Interface for task execution implementations
  */
-interface ExecutorPlugin {
+interface Executor {
     /**
      * Plugin metadata
      */

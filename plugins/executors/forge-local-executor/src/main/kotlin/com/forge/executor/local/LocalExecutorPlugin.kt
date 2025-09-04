@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Local executor plugin that runs tasks on the local machine
  */
-class LocalExecutorPlugin : ExecutorPlugin {
+class LocalExecutorPlugin : Executor {
     override val metadata = ExecutorPluginMetadata(
         id = "forge.executor.local",
         name = "Local Executor",

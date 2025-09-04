@@ -22,7 +22,7 @@ data class DockerPluginOptions(
 /**
  * ProjectPlugin implementation for Docker projects
  */
-class DockerProjectPlugin : ProjectPlugin {
+class DockerProject : ProjectPlugin {
     
     private val inference = DockerProjectInference()
     
@@ -32,7 +32,7 @@ class DockerProjectPlugin : ProjectPlugin {
         version = "1.0.0",
         description = "Support for Docker containerization",
         createNodesPattern = "**/Dockerfile",
-        supportedFiles = listOf("Dockerfile", "docker-compose.yml", "docker-compose.yaml"),
+        supportedFiles = listOf("Dockerfile"),
         author = "Forge Team",
         homepage = "https://github.com/forge/plugin-docker",
         tags = listOf("docker", "container", "deployment")

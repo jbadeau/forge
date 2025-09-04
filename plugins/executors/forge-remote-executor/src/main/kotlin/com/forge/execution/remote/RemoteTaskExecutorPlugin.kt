@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 /**
  * Remote task executor plugin that uses Remote Execution API (BuildBarn compatible)
  */
-class RemoteTaskExecutorPlugin : ExecutorPlugin {
+class RemoteTaskExecutorPlugin : Executor {
     override val metadata = ExecutorPluginMetadata(
         id = "forge.executor.remote",
         name = "Remote Executor",

@@ -26,6 +26,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Forge core for plugin generation -->
+        <dependency>
+            <groupId>com.forge</groupId>
+            <artifactId>forge</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Kotlin Standard Library -->
         <dependency>
@@ -38,6 +44,16 @@
             <groupId>com.github.ajalt.clikt</groupId>
             <artifactId>clikt-jvm</artifactId>
             <version>5.0.3</version>
+        </dependency>
+
+        <!-- Jackson for YAML/JSON parsing -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
         <!-- Logging -->

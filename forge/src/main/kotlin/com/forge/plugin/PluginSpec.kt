@@ -1,7 +1,5 @@
 package com.forge.plugin
 
-import com.forge.plugin.api.PluginConfiguration
-
 /**
  * Specification for a plugin to be loaded
  */
@@ -14,11 +12,11 @@ data class PluginSpec(
 ) {
     companion object {
         /**
-         * Create PluginSpec from PluginConfiguration
+         * Create PluginSpec from PluginConfig
          */
-        fun fromConfiguration(config: PluginConfiguration): PluginSpec {
-            val spec = parse(config.plugin)
-            return spec.copy(options = config.options)
+        fun fromConfiguration(config: PluginConfig): PluginSpec {
+            val spec = parse(config.id)
+            return spec.copy(options = config.config)
         }
         
         /**

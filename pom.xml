@@ -22,7 +22,7 @@
         <module>plugins/projects/forge-js-plugin</module>
         <module>plugins/projects/forge-maven-plugin</module>
         <module>plugins/projects/forge-go-plugin</module>
-        <module>plugins/projects/forge-docker-plugin</module>
+        <module>plugins/projects/forge-docker-project</module>
         <module>plugins/executors/forge-local-executor</module>
         <module>plugins/executors/forge-remote-executor</module>
         <module>forge-cli</module>

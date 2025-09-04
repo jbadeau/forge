@@ -17,7 +17,7 @@ class PluginRegistry {
     
     private val projectPlugins = ConcurrentHashMap<String, ProjectPlugin>()
     private val actionPlugins = ConcurrentHashMap<String, ActionPlugin>()
-    private val executorPlugins = ConcurrentHashMap<String, ExecutorPlugin>()
+    private val executorPlugins = ConcurrentHashMap<String, Executor>()
     private val actionHandlers = ConcurrentHashMap<ActionType, ActionHandler>()
     private val pluginClassLoaders = mutableListOf<URLClassLoader>()
     
@@ -55,8 +55,8 @@ class PluginRegistry {
         // These will be implemented in separate files
         // registerActionPlugin(CacheActionPlugin())
         // registerActionPlugin(TracingActionPlugin())
-        // registerExecutorPlugin(LocalExecutorPlugin())
-        // registerExecutorPlugin(DockerExecutorPlugin())
+        // registerExecutor(LocalExecutor())
+        // registerExecutor(DockerExecutor())
     }
     
     /**
@@ -82,9 +82,9 @@ class PluginRegistry {
         }
         
         // Load executor plugins
-        ServiceLoader.load(ExecutorPlugin::class.java).forEach { plugin ->
+        ServiceLoader.load(Executor::class.java).forEach { plugin ->
             try {
-                registerExecutorPlugin(plugin)
+                registerExecutor(plugin)
             } catch (e: Exception) {
                 logger.error("Failed to register executor plugin: ${plugin.javaClass.name}", e)
             }
@@ -140,8 +140,8 @@ class PluginRegistry {
             
             // Load executor plugins
             manifest.executorPlugins?.forEach { className ->
-                loadPluginClass(classLoader, className, ExecutorPlugin::class.java)?.let {
-                    registerExecutorPlugin(it)
+                loadPluginClass(classLoader, className, Executor::class.java)?.let {
+                    registerExecutor(it)
                 }
             }
         } else {
@@ -149,8 +149,8 @@ class PluginRegistry {
             ServiceLoader.load(ActionPlugin::class.java, classLoader).forEach {
                 registerActionPlugin(it)
             }
-            ServiceLoader.load(ExecutorPlugin::class.java, classLoader).forEach {
-                registerExecutorPlugin(it)
+            ServiceLoader.load(Executor::class.java, classLoader).forEach {
+                registerExecutor(it)
             }
         }
     }
@@ -166,9 +166,9 @@ class PluginRegistry {
                     val plugin = clazz.getDeclaredConstructor().newInstance() as ActionPlugin
                     registerActionPlugin(plugin)
                 }
-                ExecutorPlugin::class.java.isAssignableFrom(clazz) -> {
-                    val plugin = clazz.getDeclaredConstructor().newInstance() as ExecutorPlugin
-                    registerExecutorPlugin(plugin)
+                Executor::class.java.isAssignableFrom(clazz) -> {
+                    val plugin = clazz.getDeclaredConstructor().newInstance() as Executor
+                    registerExecutor(plugin)
                 }
                 else -> logger.error("Class is not a valid plugin: $className")
             }
@@ -245,7 +245,7 @@ class PluginRegistry {
     /**
      * Register an executor plugin
      */
-    fun registerExecutorPlugin(plugin: ExecutorPlugin, config: Map<String, Any> = emptyMap()) {
+    fun registerExecutor(plugin: Executor, config: Map<String, Any> = emptyMap()) {
         if (executorPlugins.containsKey(plugin.metadata.id)) {
             logger.warn("Replacing existing executor plugin: ${plugin.metadata.id}")
         }
@@ -282,17 +282,17 @@ class PluginRegistry {
     /**
      * Get all registered executor plugins
      */
-    fun getExecutorPlugins(): Collection<ExecutorPlugin> = executorPlugins.values
+    fun getExecutors(): Collection<Executor> = executorPlugins.values
     
     /**
      * Get executor plugin by ID
      */
-    fun getExecutorPlugin(id: String): ExecutorPlugin? = executorPlugins[id]
+    fun getExecutor(id: String): Executor? = executorPlugins[id]
     
     /**
      * Get executor that can handle the given action
      */
-    fun getExecutorForAction(action: ActionNode): ExecutorPlugin? {
+    fun getExecutorForAction(action: ActionNode): Executor? {
         // First check if action specifies a preferred executor
         val preferredExecutorId = action.metadata["executor"] as? String
         if (preferredExecutorId != null) {

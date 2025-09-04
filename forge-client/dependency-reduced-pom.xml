@@ -82,7 +82,10 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
         <configuration>
-          <systemPropertyVariables />
+          <systemPropertyVariables>
+            <junit.platform.listeners.uid.tracking.enabled>true</junit.platform.listeners.uid.tracking.enabled>
+            <junit.platform.listeners.uid.tracking.output.dir>${project.build.directory}/test-ids</junit.platform.listeners.uid.tracking.output.dir>
+          </systemPropertyVariables>
           <useSystemClassLoader>true</useSystemClassLoader>
           <skipTests>false</skipTests>
         </configuration>
