@@ -15,11 +15,11 @@
 
     <modules>
         <module>forge</module>
-        <module>plugins/projects/forge-maven-plugin</module>
-        <module>plugins/projects/forge-gradle-plugin</module>
-        <module>plugins/projects/forge-spring-boot-plugin</module>
-        <module>plugins/executors/forge-local-executor</module>
-        <module>plugins/executors/forge-remote-executor</module>
+        <module>forge-maven-plugin</module>
+        <module>forge-gradle-plugin</module>
+        <module>forge-spring-boot-plugin</module>
+        <module>forge-local-executor</module>
+        <module>forge-remote-executor</module>
         <module>forge-cli</module>
         <module>forge-client</module>
     </modules>
