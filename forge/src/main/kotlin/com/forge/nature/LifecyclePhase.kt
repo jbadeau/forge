@@ -23,9 +23,9 @@ enum class BuildLifecyclePhase(val order: Int) {
     INITIALIZE(2),      // setup, clean, prepare workspace
     GENERATE(3),        // generate source code
     COMPILE(4),         // compile source code
-    TEST(5),           // run unit tests
-    BUNDLE(6),         // create versionless artifacts (JAR, Docker image, etc.)
-    VERIFY(7)          // integration tests, quality checks
+    TEST(5),            // run unit tests
+    PACKAGE(6),         // create versionless artifacts (JAR, Docker image, etc.)
+    VERIFY(7)           // integration tests, quality checks
 }
 
 /**
@@ -38,14 +38,14 @@ enum class ReleaseLifecyclePhase(val order: Int) {
     CHANGELOG(3),        // generate release changelog from commits
     CHECKSUM(4),         // calculate SHA256 checksums for all files
     CATALOG(5),          // create Software Bill of Materials (SBOMs)
-    SIGN(6),            // PGP sign artifacts and checksums
-    DEPLOY(7),          // deploy staged artifacts to staging repos
-    UPLOAD(8),          // upload distribution artifacts and files
-    RELEASE(9),         // create release in remote Git repository (GitHub/GitLab)
-    PREPARE(10),        // generate files for packagers (Homebrew formula, etc.)
-    PACKAGE(11),        // process prepared files into specific packages
-    PUBLISH(12),        // publish packages to registries (Maven Central, Docker Hub, etc.)
-    ANNOUNCE(13)        // announce release to various channels (Twitter, Slack, etc.)
+    SIGN(6),             // PGP sign artifacts and checksums
+    DEPLOY(7),           // deploy staged artifacts to staging repos
+    UPLOAD(8),           // upload distribution artifacts and files
+    RELEASE(9),          // create release in remote Git repository (GitHub/GitLab)
+    PREPARE(10),         // generate files for packagers (Homebrew formula, etc.)
+    BUNDLE(11),          // process prepared files into specific packages
+    PUBLISH(12),         // publish packages to registries (Maven Central, Docker Hub, etc.)
+    ANNOUNCE(13)         // announce release to various channels (Twitter, Slack, etc.)
 }
 
 /**

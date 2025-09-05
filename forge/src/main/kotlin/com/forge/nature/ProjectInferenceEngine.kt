@@ -88,7 +88,7 @@ class ProjectInferenceEngine(private val natureRegistry: NatureRegistry = Nature
                             // These need the artifacts to be bundled
                             targets.filter { (_, otherTarget) ->
                                 otherTarget.lifecycle is TargetLifecycle.Build &&
-                                otherTarget.lifecycle.phase == BuildLifecyclePhase.BUNDLE
+                                otherTarget.lifecycle.phase == BuildLifecyclePhase.PACKAGE
                             }.keys.toList()
                         }
                         DevelopmentLifecyclePhase.WATCH,
