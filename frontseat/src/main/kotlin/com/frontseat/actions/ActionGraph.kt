@@ -1,8 +1,21 @@
 package com.frontseat.actions
 
-import com.frontseat.plugin.api.MutableActionGraph
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+
+/**
+ * Interface for mutable action graph operations
+ */
+interface MutableActionGraph {
+    fun addNode(node: ActionNode)
+    fun addDependency(from: String, to: String)
+    fun insertBefore(targetId: String, node: ActionNode)
+    fun insertAfter(targetId: String, node: ActionNode)
+    fun wrapTask(taskId: String, before: ActionNode, after: ActionNode)
+    fun replaceAction(actionId: String, newNode: ActionNode)
+    fun removeAction(actionId: String)
+    fun getTaskActions(taskId: String): List<ActionNode>
+}
 
 /**
  * Fine-grained action graph where tasks are decomposed into multiple actions.

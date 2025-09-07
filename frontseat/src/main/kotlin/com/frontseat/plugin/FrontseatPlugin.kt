@@ -6,7 +6,7 @@ import kotlin.reflect.full.findAnnotation
 
 /**
  * Simplified single interface for Frontseat plugins.
- * Plugins register capabilities (natures, executors, generators) during initialization.
+ * Plugins register capabilities (natures, tasks, generators) during initialization.
  */
 interface FrontseatPlugin {
     /**
@@ -35,7 +35,7 @@ interface FrontseatPlugin {
      * Initialize the plugin with workspace context.
      * This is where plugins register their capabilities:
      * - Register natures with NatureRegistry
-     * - Register executors with ExecutorRegistry  
+     * - Register tasks (tasks are functions with @Task annotation)
      * - Register generators with GeneratorRegistry
      * 
      * Default implementation does nothing - override if manual registration needed

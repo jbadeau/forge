@@ -291,25 +291,8 @@ object BackstageAnnotations {
 }
 
 /**
- * Common project nature IDs that can be inferred
+ * Generic project nature constants for catalog annotations
  */
 object ProjectNatureIds {
-    const val MAVEN = "maven"
-    const val GRADLE = "gradle"
-    const val NPM = "npm"
-    const val YARN = "yarn"
-    const val PNPM = "pnpm"
-    const val RUST = "rust"
-    const val PYTHON = "python"
-    const val DOCKER = "docker"
-    const val KUBERNETES = "kubernetes"
-    const val TERRAFORM = "terraform"
-    const val SPRING_BOOT = "spring-boot"
-    const val REACT = "react"
-    const val ANGULAR = "angular"
-    const val VUE = "vue"
-    const val NEXTJS = "nextjs"
-    const val NODEJS = "nodejs"
-    const val DOTNET = "dotnet"
     const val CUSTOM = "custom"
 }

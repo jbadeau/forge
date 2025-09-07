@@ -42,14 +42,14 @@ interface ProjectNature {
      * Layer number for this nature - lower layers are applied first
      * Gets value from @Nature annotation if present, otherwise must override
      * Standard layers:
-     * 0 = Build Systems (Maven, Gradle, Cargo, npm, etc.)
-     * 1 = Languages (Java, Kotlin, JavaScript, TypeScript, Rust, Go, etc.)
-     * 2 = Runtimes/Platforms (Node.js, JVM, .NET, etc.)
-     * 3 = Frameworks (Spring Boot, React, Angular, Next.js, FastAPI, etc.)
-     * 4 = Testing (JUnit, Jest, Cypress, Playwright, etc.)
-     * 5 = Infrastructure (Docker, Kubernetes, Terraform, etc.)
-     * 6 = Quality/Analysis (SonarQube, ESLint, Prettier, etc.)
-     * 7 = Deployment/Distribution (Jib, Docker Build, NPM Publish, etc.)
+     * 0 = Build Systems (build tools and package managers)
+     * 1 = Languages (programming language detection and tooling)
+     * 2 = Runtimes/Platforms (runtime environment and platform tooling)
+     * 3 = Frameworks (web frameworks, application frameworks, etc.)
+     * 4 = Testing (test frameworks and testing tools)
+     * 5 = Infrastructure (containerization, orchestration, IaC, etc.)
+     * 6 = Quality/Analysis (linting, formatting, static analysis, etc.)
+     * 7 = Deployment/Distribution (publishing, containerization, etc.)
      */
     val layer: Int
         get() = this::class.findAnnotation<Nature>()?.layer
@@ -182,12 +182,12 @@ class NatureContextImpl(
  * Standard nature layers - lower numbers are applied first
  */
 object NatureLayers {
-    const val BUILD_SYSTEMS = 0     // Maven, Gradle, Cargo, npm, etc.
-    const val LANGUAGES = 1         // Java, Kotlin, JavaScript, TypeScript, Rust, Go, etc.
-    const val RUNTIMES = 2          // Node.js, JVM, .NET, etc.
-    const val FRAMEWORKS = 3        // Spring Boot, React, Angular, Next.js, FastAPI, etc.
-    const val TESTING = 4           // JUnit, Jest, Cypress, Playwright, etc.
-    const val INFRASTRUCTURE = 5    // Docker, Kubernetes, Terraform, etc.
-    const val QUALITY = 6           // SonarQube, ESLint, Prettier, etc.
-    const val DEPLOYMENT = 7        // Jib, Docker Build, NPM Publish, etc.
+    const val BUILD_SYSTEMS = 0     // build tools and package managers
+    const val LANGUAGES = 1         // programming language detection and tooling
+    const val RUNTIMES = 2          // runtime environment and platform tooling
+    const val FRAMEWORKS = 3        // web frameworks, application frameworks, etc.
+    const val TESTING = 4           // test frameworks and testing tools
+    const val INFRASTRUCTURE = 5    // containerization, orchestration, IaC, etc.
+    const val QUALITY = 6           // linting, formatting, static analysis, etc.
+    const val DEPLOYMENT = 7        // publishing, containerization, etc.
 }

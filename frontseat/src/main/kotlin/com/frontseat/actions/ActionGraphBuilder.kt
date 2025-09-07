@@ -263,29 +263,10 @@ class ActionGraphBuilder {
     private fun extractRequiredTools(task: Task): List<String> {
         val tools = mutableListOf<String>()
         
-        // Check command for common tool patterns
-        val command = task.configuration.options["command"] as? String ?: ""
-        when {
-            command.startsWith("npm ") || command.startsWith("npx ") -> tools.add("node")
-            command.startsWith("yarn ") -> {
-                tools.add("node")
-                tools.add("yarn")
-            }
-            command.startsWith("pnpm ") -> {
-                tools.add("node")
-                tools.add("pnpm")
-            }
-            command.startsWith("go ") -> tools.add("go")
-            command.startsWith("cargo ") -> tools.add("rust")
-            command.startsWith("mvn ") -> tools.add("maven")
-            command.startsWith("gradle ") -> tools.add("gradle")
-            command.startsWith("docker ") -> tools.add("docker")
-            command.startsWith("python ") || command.startsWith("pip ") -> tools.add("python")
-        }
-        
-        // Check for explicit tool requirements in metadata
+        // Only use explicit tool requirements from task metadata
+        // Plugin-specific tool detection should be handled by the plugins themselves
         (task.metadata["requiredTools"] as? List<*>)?.forEach { tool ->
-            if (tool is String && tool !in tools) {
+            if (tool is String) {
                 tools.add(tool)
             }
         }

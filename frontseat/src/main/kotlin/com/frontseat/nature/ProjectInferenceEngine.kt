@@ -66,14 +66,8 @@ class ProjectInferenceEngine(private val natureRegistry: NatureRegistry) {
             // Add nature ID as tag
             tags.add(nature.id)
             
-            // Add common technology tags
-            when (nature.id) {
-                "maven" -> tags.addAll(listOf("java", "build-tool"))
-                "gradle" -> tags.addAll(listOf("java", "build-tool"))
-                "spring-boot" -> tags.addAll(listOf("java", "framework", "web"))
-                "docker" -> tags.addAll(listOf("containerization"))
-                "react" -> tags.addAll(listOf("javascript", "frontend", "web"))
-            }
+            // Plugin-specific tag inference should be handled by the plugins themselves
+            // through nature metadata or custom tag providers
         }
         return tags.toList()
     }

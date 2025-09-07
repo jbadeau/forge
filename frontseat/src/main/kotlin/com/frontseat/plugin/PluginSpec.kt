@@ -94,3 +94,12 @@ enum class PluginSource {
     GITHUB,   // GitHub releases
     FILE      // Local file system
 }
+
+/**
+ * Plugin configuration
+ */
+data class PluginConfig(
+    val id: String,
+    val enabled: Boolean = true,
+    val config: Map<String, Any> = emptyMap()
+)

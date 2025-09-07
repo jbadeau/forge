@@ -2,14 +2,13 @@ package com.frontseat.springboot.plugin
 
 import com.frontseat.annotation.AutoRegister
 import com.frontseat.annotation.Nature
-import com.frontseat.maven.commons.MavenCommandBuilder
 import com.frontseat.maven.commons.MavenNatureIds
 import com.frontseat.springboot.commons.SpringBootUtils
 import com.frontseat.springboot.commons.SpringBootNatureIds
 import com.frontseat.springboot.commons.SpringBootTaskNames
+import com.frontseat.springboot.tasks.*
 import com.frontseat.nature.*
 import com.frontseat.command.CommandTask
-import com.frontseat.command.commandTask
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -30,20 +29,13 @@ class SpringBootNature : ProjectNature {
     override fun createTasks(projectPath: Path, context: NatureContext): Map<String, CommandTask> {
         val tasks = mutableMapOf<String, CommandTask>()
         
-        // Check if Maven nature is available and create serve task
+        // Check if Maven nature is available for Spring Boot Maven plugin tasks
         if (context.hasNature(MavenNatureIds.MAVEN)) {
-            val command = MavenCommandBuilder.build()
-                .inProject(projectPath)
-                .withGoal("spring-boot:run")
-                .toCommandString()
+            // Spring Boot development start task (uses spring-boot:run)
+            tasks[SpringBootTaskNames.START] = createSpringBootStartTask(projectPath)
             
-            tasks[SpringBootTaskNames.SERVE] = commandTask(SpringBootTaskNames.SERVE, TargetLifecycle.Development(DevelopmentLifecyclePhase.SERVE)) {
-                description("Start Spring Boot application for development")
-                command(command)
-                workingDirectory(projectPath)
-                cacheable(false) // Serving is not cacheable
-                readyWhen("Started") // Wait for Spring Boot "Started" message
-            }
+            // Build container image using Cloud Native Buildpacks
+            tasks[SpringBootTaskNames.BUILD_IMAGE] = createSpringBootBuildImageTask(projectPath)
         } else {
             logger.debug("SpringBoot nature found but no supported build system (maven) available for project: $projectPath")
         }

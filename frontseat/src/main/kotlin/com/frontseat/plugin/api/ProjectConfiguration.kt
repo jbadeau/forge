@@ -33,7 +33,7 @@ data class ProjectConfiguration(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TargetConfiguration(
-    val executor: String? = null,
+    val executor: String? = null,  // Task name or reference (NX compatibility)
     val options: Map<String, Any> = emptyMap(),
     val configurations: Map<String, Map<String, Any>> = emptyMap(),
     @JsonProperty("dependsOn") 

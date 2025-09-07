@@ -34,45 +34,10 @@ data class WorkspaceConfiguration(
         }
         
         /**
-         * Default plugins that are always available
+         * No default plugins - plugins should be explicitly configured
+         * The core should not know about specific plugins
          */
-        private fun getDefaultPlugins(): List<PluginSpec> = listOf(
-            PluginSpec(
-                id = "com.frontseat.js",
-                version = "latest",
-                options = mapOf(
-                    "buildTargetName" to "build",
-                    "testTargetName" to "test",
-                    "lintTargetName" to "lint"
-                )
-            ),
-            PluginSpec(
-                id = "com.frontseat.maven", 
-                version = "latest",
-                options = mapOf(
-                    "buildTargetName" to "compile",
-                    "testTargetName" to "test",
-                    "packageTargetName" to "package"
-                )
-            ),
-            PluginSpec(
-                id = "com.frontseat.go",
-                version = "latest",
-                options = mapOf(
-                    "buildTargetName" to "build",
-                    "testTargetName" to "test"
-                )
-            ),
-            PluginSpec(
-                id = "com.frontseat.docker",
-                version = "latest",
-                options = mapOf(
-                    "buildTargetName" to "docker-build",
-                    "runTargetName" to "docker-run",
-                    "pushTargetName" to "docker-push"
-                )
-            )
-        )
+        private fun getDefaultPlugins(): List<PluginSpec> = emptyList()
     }
     
     /**

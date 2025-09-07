@@ -6,13 +6,14 @@ package com.frontseat.nature
 enum class DevelopmentLifecyclePhase(val order: Int) {
     FORMAT(1),          // format source code (prettier, spotless, etc.)
     LINT(2),            // lint source code
-    SERVE(3),           // run application locally (Spring Boot, Node dev server, etc.)
+    START(3),           // start application locally (Spring Boot, Node dev server, etc.)
     WATCH(4),           // watch files for changes
     RELOAD(5),          // hot reload on changes
     DEBUG(6),           // run in debug mode
-    PROFILE(7),         // run with profiling
-    MONITOR(8),         // monitor application metrics
-    NUKE(9)             // deep clean - remove all generated files, node_modules, etc.
+    RUN(7),             // run from packaged artifact
+    PROFILE(8),         // run with profiling
+    MONITOR(9),         // monitor application metrics
+    NUKE(10)            // deep clean - remove all generated files, node_modules, etc.
 }
 
 /**

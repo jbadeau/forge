@@ -1,30 +1,15 @@
 package com.frontseat.plugin.api
 
+import com.frontseat.command.CommandTask
 import java.nio.file.Path
 
 /**
- * Context provided to plugins during node creation
+ * Result of project inference process
  */
-data class CreateNodesContext(
-    val workspaceRoot: Path,
-    val nxJsonConfiguration: Map<String, Any> = emptyMap()
-)
-
-/**
- * Result of node creation by plugins
- */
-data class CreateNodesResult(
-    val projects: Map<String, ProjectConfiguration> = emptyMap(),
+data class InferenceResult(
+    val projects: Map<String, Map<String, CommandTask>>,
+    val dependencies: List<RawProjectGraphDependency>,
     val externalNodes: Map<String, Any> = emptyMap()
-)
-
-/**
- * Context provided to plugins during dependency creation
- */
-data class CreateDependenciesContext(
-    val workspaceRoot: Path,
-    val projects: Map<String, ProjectConfiguration>,
-    val nxJsonConfiguration: Map<String, Any> = emptyMap()
 )
 
 /**
@@ -35,13 +20,4 @@ data class RawProjectGraphDependency(
     val target: String,
     val type: DependencyType,
     val sourceFile: String? = null
-)
-
-/**
- * Result of inference process
- */
-data class InferenceResult(
-    val projects: Map<String, Map<String, com.frontseat.command.CommandTask>>,
-    val dependencies: List<RawProjectGraphDependency>,
-    val externalNodes: Map<String, Any> = emptyMap()
 )

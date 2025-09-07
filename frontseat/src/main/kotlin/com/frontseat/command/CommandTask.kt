@@ -13,7 +13,7 @@ sealed class CommandResult {
 }
 
 /**
- * Base interface for executable command tasks
+ * Base interface for executable command tasks (NX executor-like)
  */
 interface CommandTask {
     val id: String
@@ -30,6 +30,11 @@ interface CommandTask {
     val readyWhen: String?
     val color: Boolean
     val envFile: Path?
+    
+    // NX executor-like properties
+    val inputs: List<String>
+    val outputs: List<String>
+    val options: Map<String, Any>
     
     /**
      * Execute this command task
@@ -67,7 +72,10 @@ data class SimpleCommandTask(
     override val forwardAllArgs: Boolean = true,
     override val readyWhen: String? = null,
     override val color: Boolean = true,
-    override val envFile: Path? = null
+    override val envFile: Path? = null,
+    override val inputs: List<String> = emptyList(),
+    override val outputs: List<String> = emptyList(),
+    override val options: Map<String, Any> = emptyMap()
 ) : CommandTask {
     
     init {
@@ -96,6 +104,9 @@ class CommandTaskBuilder(private val id: String, private val lifecycle: TargetLi
     private var readyWhen: String? = null
     private var color: Boolean = true
     private var envFile: Path? = null
+    var inputs: List<String> = emptyList()
+    var outputs: List<String> = emptyList()
+    var options: Map<String, Any> = emptyMap()
     
     fun description(description: String) = apply { this.description = description }
     fun cacheable(cacheable: Boolean) = apply { this.cacheable = cacheable }
@@ -128,7 +139,10 @@ class CommandTaskBuilder(private val id: String, private val lifecycle: TargetLi
             forwardAllArgs = forwardAllArgs,
             readyWhen = readyWhen,
             color = color,
-            envFile = envFile
+            envFile = envFile,
+            inputs = inputs,
+            outputs = outputs,
+            options = options
         )
     }
 }
