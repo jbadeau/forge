@@ -1,7 +1,8 @@
 package com.frontseat.maven.plugin
 
 import com.frontseat.nature.*
-import com.frontseat.plugin.api.TargetConfiguration
+import com.frontseat.command.CommandTask
+import com.frontseat.command.commandTask
 import java.nio.file.Path
 
 /**
@@ -19,44 +20,29 @@ class MavenNature : ProjectNature {
         return MavenUtils.isMavenProject(projectPath)
     }
     
-    override fun createTasks(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition> {
-        val tasks = mutableMapOf<String, NatureTargetDefinition>()
+    override fun createTasks(projectPath: Path, context: NatureContext): Map<String, CommandTask> {
+        val tasks = mutableMapOf<String, CommandTask>()
         
         // Build lifecycle tasks - using official lifecycle phase names
-        tasks["validate"] = NatureTargetDefinition(
-            configuration = TargetConfiguration(
-                executor = "maven",
-                options = MavenCommandBuilder.build()
-                    .inProject(projectPath)
-                    .withPhase("validate")
-                    .toOptions()
-            ),
-            lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.VALIDATE)
-        )
+        tasks["validate"] = commandTask("validate", TargetLifecycle.Build(BuildLifecyclePhase.VALIDATE)) {
+            description("Validate the project structure and dependencies")
+            command(MavenCommandBuilder.build().inProject(projectPath).withPhase("validate").toCommandString())
+            workingDirectory(projectPath)
+        }
         
-        tasks["initialize"] = NatureTargetDefinition(
-            configuration = TargetConfiguration(
-                executor = "maven",
-                options = MavenCommandBuilder.build()
-                    .inProject(projectPath)
-                    .withPhase("clean")
-                    .toOptions()
-            ),
-            lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.INITIALIZE)
-        )
+        tasks["initialize"] = commandTask("initialize", TargetLifecycle.Build(BuildLifecyclePhase.INITIALIZE)) {
+            description("Initialize the project (clean)")
+            command(MavenCommandBuilder.build().inProject(projectPath).withPhase("clean").toCommandString())
+            workingDirectory(projectPath)
+        }
         
         // Generate phase - skip if no code generation needed
         
-        tasks["compile"] = NatureTargetDefinition(
-            configuration = TargetConfiguration(
-                executor = "maven",
-                options = MavenCommandBuilder.build()
-                    .inProject(projectPath)
-                    .withPhase("compile")
-                    .toOptions()
-            ),
-            lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.COMPILE)
-        )
+        tasks["compile"] = commandTask("compile", TargetLifecycle.Build(BuildLifecyclePhase.COMPILE)) {
+            description("Compile source code")
+            command(MavenCommandBuilder.build().inProject(projectPath).withPhase("compile").toCommandString())
+            workingDirectory(projectPath)
+        }
         
         tasks["test"] = NatureTargetDefinition(
             configuration = TargetConfiguration(

@@ -1,7 +1,6 @@
 package com.frontseat.nature
 
-import com.frontseat.plugin.api.ProjectConfiguration
-import com.frontseat.plugin.api.TargetConfiguration
+import com.frontseat.command.CommandTask
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -32,7 +31,7 @@ class ProjectInferenceEngine(private val natureRegistry: NatureRegistry) {
         val context = NatureContextImpl(projectPath, resolvedNatures.map { it.id }.toSet())
         
         // Collect tasks from all natures
-        val allTasks = mutableMapOf<String, NatureTargetDefinition>()
+        val allTasks = mutableMapOf<String, CommandTask>()
         resolvedNatures.forEach { nature ->
             try {
                 val natureTasks = nature.createTasks(projectPath, context)
@@ -43,8 +42,7 @@ class ProjectInferenceEngine(private val natureRegistry: NatureRegistry) {
             }
         }
         
-        // Resolve task dependencies based on lifecycle phases
-        val resolvedTasks = resolveTaskDependencies(allTasks)
+        // Tasks are now self-contained with their lifecycle dependencies
         
         // Infer project name from path
         val projectName = projectPath.fileName?.toString() ?: "unknown"
@@ -53,77 +51,11 @@ class ProjectInferenceEngine(private val natureRegistry: NatureRegistry) {
             name = projectName,
             root = projectPath.toString(),
             natures = resolvedNatures.map { it.id }.toSet(),
-            tasks = resolvedTasks,
+            tasks = allTasks,
             tags = inferTags(resolvedNatures)
         )
     }
     
-    /**
-     * Resolve task dependencies based on lifecycle phase ordering
-     */
-    private fun resolveTaskDependencies(tasks: Map<String, NatureTargetDefinition>): Map<String, TargetConfiguration> {
-        return tasks.mapValues { (taskName, taskDef) ->
-            val dependencies = when (val lifecycle = taskDef.lifecycle) {
-                is TargetLifecycle.Build -> {
-                    // Find all tasks in earlier build phases
-                    tasks.filter { (otherName, otherTask) ->
-                        otherName != taskName &&
-                        otherTask.lifecycle is TargetLifecycle.Build &&
-                        otherTask.lifecycle.phase.order < lifecycle.phase.order
-                    }.keys.toList()
-                }
-                is TargetLifecycle.Development -> {
-                    // Different development phases have different dependencies
-                    val buildDependencies = when (lifecycle.phase) {
-                        DevelopmentLifecyclePhase.FORMAT,
-                        DevelopmentLifecyclePhase.LINT,
-                        DevelopmentLifecyclePhase.NUKE -> {
-                            // These don't depend on build
-                            emptyList()
-                        }
-                        DevelopmentLifecyclePhase.SERVE,
-                        DevelopmentLifecyclePhase.DEBUG,
-                        DevelopmentLifecyclePhase.PROFILE,
-                        DevelopmentLifecyclePhase.MONITOR -> {
-                            // These need the artifacts to be bundled
-                            tasks.filter { (_, otherTask) ->
-                                otherTask.lifecycle is TargetLifecycle.Build &&
-                                otherTask.lifecycle.phase == BuildLifecyclePhase.PACKAGE
-                            }.keys.toList()
-                        }
-                        DevelopmentLifecyclePhase.WATCH,
-                        DevelopmentLifecyclePhase.RELOAD -> {
-                            // These need compilation
-                            tasks.filter { (_, otherTask) ->
-                                otherTask.lifecycle is TargetLifecycle.Build &&
-                                otherTask.lifecycle.phase == BuildLifecyclePhase.COMPILE
-                            }.keys.toList()
-                        }
-                    }
-                    
-                    // Plus any earlier development phases
-                    val devDependencies = tasks.filter { (otherName, otherTask) ->
-                        otherName != taskName &&
-                        otherTask.lifecycle is TargetLifecycle.Development &&
-                        otherTask.lifecycle.phase.order < lifecycle.phase.order
-                    }.keys.toList()
-                    
-                    buildDependencies + devDependencies
-                }
-                is TargetLifecycle.Release -> {
-                    // Find all tasks in earlier release phases
-                    tasks.filter { (otherName, otherTask) ->
-                        otherName != taskName &&
-                        otherTask.lifecycle is TargetLifecycle.Release &&
-                        otherTask.lifecycle.phase.order < lifecycle.phase.order
-                    }.keys.toList()
-                }
-            }
-            
-            // Add dependencies to task configuration
-            taskDef.configuration.copy(dependsOn = dependencies)
-        }
-    }
     
     /**
      * Infer project tags from applied natures
@@ -154,20 +86,7 @@ data class InferredProject(
     val name: String,
     val root: String,
     val natures: Set<String>,
-    val tasks: Map<String, TargetConfiguration>,
+    val tasks: Map<String, CommandTask>,
     val tags: List<String>
-) {
-    /**
-     * Convert to ProjectConfiguration
-     */
-    fun toProjectConfiguration(): ProjectConfiguration {
-        return ProjectConfiguration(
-            name = name,
-            root = root,
-            projectType = "inferred",
-            targets = tasks, // Keep targets in API for now
-            tags = tags
-        )
-    }
-}
+)
 

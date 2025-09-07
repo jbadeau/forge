@@ -41,7 +41,7 @@ data class RawProjectGraphDependency(
  * Result of inference process
  */
 data class InferenceResult(
-    val projects: Map<String, ProjectConfiguration>,
+    val projects: Map<String, Map<String, com.frontseat.command.CommandTask>>,
     val dependencies: List<RawProjectGraphDependency>,
     val externalNodes: Map<String, Any> = emptyMap()
 )

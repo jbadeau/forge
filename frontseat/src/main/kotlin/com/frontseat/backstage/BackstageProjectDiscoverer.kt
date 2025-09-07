@@ -2,8 +2,7 @@ package com.frontseat.backstage
 
 import com.frontseat.nature.NatureRegistry
 import com.frontseat.nature.ProjectNature
-import com.frontseat.plugin.api.ProjectConfiguration
-import com.frontseat.plugin.api.TargetConfiguration
+import com.frontseat.command.CommandTask
 import com.frontseat.plugin.api.InferenceResult
 import com.frontseat.plugin.api.RawProjectGraphDependency
 import com.frontseat.plugin.api.DependencyType
@@ -33,7 +32,7 @@ class BackstageProjectDiscoverer(private val natureRegistry: NatureRegistry) {
     fun discoverProjects(workspaceRoot: Path): InferenceResult {
         logger.info("Discovering projects using Backstage catalog files in: $workspaceRoot")
         
-        val projects = mutableMapOf<String, ProjectConfiguration>()
+        val projects = mutableMapOf<String, Map<String, CommandTask>>()
         val dependencies = mutableListOf<RawProjectGraphDependency>()
         val externalNodes = mutableMapOf<String, Any>()
         
@@ -98,7 +97,7 @@ class BackstageProjectDiscoverer(private val natureRegistry: NatureRegistry) {
     private fun processCatalogFile(
         catalogFile: Path,
         workspaceRoot: Path,
-        projects: MutableMap<String, ProjectConfiguration>,
+        projects: MutableMap<String, Map<String, CommandTask>>,
         dependencies: MutableList<RawProjectGraphDependency>,
         externalNodes: MutableMap<String, Any>
     ) {
@@ -147,7 +146,7 @@ class BackstageProjectDiscoverer(private val natureRegistry: NatureRegistry) {
         component: Component,
         catalogFile: Path,
         workspaceRoot: Path,
-        projects: MutableMap<String, ProjectConfiguration>,
+        projects: MutableMap<String, Map<String, CommandTask>>,
         dependencies: MutableList<RawProjectGraphDependency>
     ) {
         val projectRoot = catalogFile.parent
@@ -177,7 +176,7 @@ class BackstageProjectDiscoverer(private val natureRegistry: NatureRegistry) {
             Pair(natures, tasks)
         } else {
             logger.debug("No natures inferred for $projectName")
-            Pair(emptySet<String>(), emptyMap<String, TargetConfiguration>())
+            Pair(emptySet<String>(), emptyMap<String, CommandTask>())
         }
         
         // For now, use explicit Backstage dependencies
@@ -190,33 +189,8 @@ class BackstageProjectDiscoverer(private val natureRegistry: NatureRegistry) {
         
         logger.debug("Dependencies for $projectName: ${allBackstageDependencies.size} explicit")
         
-        // Extract tags from metadata
-        val tags = mutableSetOf<String>().apply {
-            addAll(component.metadata.tags)
-            add("type:${component.spec.type}")
-            add("lifecycle:${component.spec.lifecycle}")
-            natures.forEach { add("nature:$it") }
-        }
-        
-        // Create project configuration
-        val projectConfig = ProjectConfiguration(
-            root = relativePath,
-            name = projectName,
-            targets = tasks, // Keep API as targets for now
-            tags = tags.toList()
-        )
-        
-        // Store metadata separately if needed
-        val metadata = mapOf(
-                "backstage.entity.kind" to component.kind,
-                "backstage.entity.type" to component.spec.type,
-                "backstage.entity.lifecycle" to component.spec.lifecycle,
-                "backstage.entity.owner" to component.spec.owner,
-                "backstage.entity.system" to (component.spec.system ?: ""),
-                "backstage.entity.namespace" to (component.metadata.namespace ?: "default")
-            )
-        
-        projects[projectName] = projectConfig
+        // Store just the command tasks for this project
+        projects[projectName] = tasks
         
         // Process all dependencies (explicit + inferred)
         allBackstageDependencies.forEach { dep ->

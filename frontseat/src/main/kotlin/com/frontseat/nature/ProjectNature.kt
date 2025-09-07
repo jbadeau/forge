@@ -1,6 +1,6 @@
 package com.frontseat.nature
 
-import com.frontseat.plugin.api.TargetConfiguration
+import com.frontseat.command.CommandTask
 import java.nio.file.Path
 
 /**
@@ -52,7 +52,7 @@ interface ProjectNature {
     /**
      * Create tasks for this nature, bound to appropriate lifecycle phases
      */
-    fun createTasks(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition>
+    fun createTasks(projectPath: Path, context: NatureContext): Map<String, CommandTask>
     
     /**
      * Create project dependencies for this nature
@@ -60,14 +60,6 @@ interface ProjectNature {
     fun createDependencies(projectPath: Path, context: NatureContext): List<ProjectDependency>
 }
 
-/**
- * Target definition with lifecycle binding
- */
-data class NatureTargetDefinition(
-    val configuration: TargetConfiguration,
-    val lifecycle: TargetLifecycle,
-    val cacheable: Boolean = true // Build targets cacheable by default
-)
 
 /**
  * Project dependency discovered by a nature

@@ -38,12 +38,13 @@ class ProjectGraphBuilder(
         // Discover projects via explicit project.json files
         projects.putAll(discoverExplicitProjects())
         
-        // Discover projects via Backstage catalog
+        // Discover projects via Backstage catalog  
+        // TODO: Integrate clean CommandTask API with project graph
         var inferenceResult: InferenceResult? = null
         if (enableInference) {
             inferenceResult = backstageDiscoverer.discoverProjects(workspaceRoot)
-            projects.putAll(inferenceResult.projects)
-            logger.info("Inferred ${inferenceResult.projects.size} projects via Backstage catalog")
+            // Skip integration for now until full clean API is implemented
+            logger.info("Inferred ${inferenceResult.projects.size} projects via Backstage catalog (skipping integration)")
         }
         
         // Discover projects via discovery plugins

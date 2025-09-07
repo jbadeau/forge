@@ -1,8 +1,10 @@
 package com.frontseat.springboot.plugin
 
-import com.frontseat.maven.plugin.MavenUtils
+import com.frontseat.maven.plugin.MavenCommandBuilder
 import com.frontseat.nature.*
-import com.frontseat.plugin.api.TargetConfiguration
+import com.frontseat.command.CommandTask
+import com.frontseat.command.commandTask
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
 /**
@@ -17,59 +19,44 @@ class SpringBootNature : ProjectNature {
     override val layer = NatureLayers.FRAMEWORKS
     
     override fun isApplicable(projectPath: Path, context: NatureContext?): Boolean {
-        // Spring Boot requires both Spring Boot markers AND a build system nature
-        val hasSpringBoot = SpringBootInference.isSpringBootProject(projectPath.toString())
-        
-        // Since we're in layer 2, build system natures (layer 0) are already applied in context
-        val hasBuildSystem = context?.hasNature("maven") ?: false || context?.hasNature("gradle") ?: false
-        
-        return hasSpringBoot && hasBuildSystem
+        // Spring Boot only requires Spring Boot markers - build system is checked at task creation
+        return SpringBootInference.isSpringBootProject(projectPath.toString())
     }
     
-    override fun createTasks(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition> {
-        val tasks = mutableMapOf<String, NatureTargetDefinition>()
+    override fun createTasks(projectPath: Path, context: NatureContext): Map<String, CommandTask> {
+        val tasks = mutableMapOf<String, CommandTask>()
         
         // Only add serve task for Spring Boot applications (not libraries)
         val projectInfo = SpringBootInference.inferProject(projectPath.toString())
         if (projectInfo?.category == SpringBootProjectCategory.APPLICATION) {
             
-            // Create serve task based on available build system
-            val serveTask = when {
+            // Check what build system natures are available and create appropriate tasks
+            when {
                 context.hasNature("maven") -> {
-                    TargetConfiguration(
-                        executor = "maven",
-                        options = mapOf(
-                            "command" to "mvn spring-boot:run",
-                            "workingDirectory" to projectPath.toString()
-                        )
-                    )
+                    // Create serve task using Maven's spring-boot:run goal
+                    val command = MavenCommandBuilder.build()
+                        .inProject(projectPath)
+                        .withGoal("spring-boot:run")
+                        .toCommandString()
+                    
+                    tasks["serve"] = commandTask("serve", TargetLifecycle.Development(DevelopmentLifecyclePhase.SERVE)) {
+                        description("Start Spring Boot application for development")
+                        command(command)
+                        workingDirectory(projectPath)
+                        cacheable(false) // Serving is not cacheable
+                        readyWhen("Started") // Wait for Spring Boot "Started" message
+                    }
                 }
-                context.hasNature("gradle") -> {
-                    TargetConfiguration(
-                        executor = "gradle", 
-                        options = mapOf(
-                            "command" to "./gradlew bootRun",
-                            "workingDirectory" to projectPath.toString()
-                        )
-                    )
-                }
+                
+                // Future: Add support for other build systems
+                // context.hasNature("gradle") -> { ... }
+                // context.hasNature("sbt") -> { ... }
+                
                 else -> {
-                    // Fallback - shouldn't happen if dependencies are correct
-                    TargetConfiguration(
-                        executor = "shell",
-                        options = mapOf(
-                            "command" to "echo 'No build system found for Spring Boot serve'",
-                            "workingDirectory" to projectPath.toString()
-                        )
-                    )
+                    // No supported build system available - don't create any tasks
+                    logger.debug("SpringBoot nature found but no supported build system (maven) available for project: $projectPath")
                 }
             }
-            
-            tasks["serve"] = NatureTargetDefinition(
-                configuration = serveTask,
-                lifecycle = TargetLifecycle.Development(DevelopmentLifecyclePhase.SERVE),
-                cacheable = false // Serving is not cacheable
-            )
         }
         
         return tasks
