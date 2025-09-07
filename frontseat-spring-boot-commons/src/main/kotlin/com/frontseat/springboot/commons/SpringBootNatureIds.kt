@@ -9,6 +9,6 @@ object SpringBootNatureIds {
 
 object SpringBootTaskNames {
     // Spring Boot specific tasks
-    const val START = "start"
-    const val BUILD_IMAGE = "build-image"
+    const val START = "spring-boot-start"
+    const val CONTAINERIZE = "spring-boot-containerize"
 }

@@ -25,7 +25,6 @@ class MavenNature : ProjectNature {
     override fun createTasks(projectPath: Path, context: NatureContext): Map<String, CommandTask> {
         return mapOf(
             MavenTaskNames.VALIDATE to createMavenValidateTask(projectPath),
-            MavenTaskNames.INITIALIZE to createMavenInitializeTask(projectPath),
             MavenTaskNames.COMPILE to createMavenCompileTask(projectPath),
             MavenTaskNames.TEST to createMavenTestTask(projectPath),
             MavenTaskNames.PACKAGE to createMavenPackageTask(projectPath),

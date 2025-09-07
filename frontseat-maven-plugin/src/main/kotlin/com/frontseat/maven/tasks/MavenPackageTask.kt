@@ -15,10 +15,10 @@ import java.nio.file.Path
 @Task(
     name = MavenTaskNames.PACKAGE,
     lifecycle = TargetLifecycle.Build::class,
-    phase = BuildLifecyclePhase.BUNDLE
+    phase = BuildLifecyclePhase.PACKAGE
 )
 fun createMavenPackageTask(projectPath: Path): CommandTask {
-    return commandTask(MavenTaskNames.PACKAGE, TargetLifecycle.Build(BuildLifecyclePhase.BUNDLE)) {
+    return commandTask(MavenTaskNames.PACKAGE, TargetLifecycle.Build(BuildLifecyclePhase.PACKAGE)) {
         description("Package compiled code")
         command(MavenCommandBuilder.build().inProject(projectPath).withPhase("package").toCommandString())
         workingDirectory(projectPath)

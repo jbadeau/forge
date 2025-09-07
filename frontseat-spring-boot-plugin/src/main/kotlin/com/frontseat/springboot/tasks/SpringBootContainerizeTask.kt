@@ -24,11 +24,11 @@ import java.nio.file.Path
  * - registryPassword: Registry password (should use secrets!)
  */
 @Task(
-    name = SpringBootTaskNames.BUILD_IMAGE,
+    name = SpringBootTaskNames.CONTAINERIZE,
     lifecycle = TargetLifecycle.Build::class,
-    phase = BuildLifecyclePhase.BUNDLE
+    phase = BuildLifecyclePhase.PACKAGE
 )
-fun createSpringBootBuildImageTask(
+fun createSpringBootContainerizeTask(
     projectPath: Path,
     userOptions: Map<String, Any> = emptyMap()
 ): CommandTask {
@@ -99,7 +99,7 @@ fun createSpringBootBuildImageTask(
         builder.withArg(arg.toString())
     }
     
-    return commandTask(SpringBootTaskNames.BUILD_IMAGE, TargetLifecycle.Build(BuildLifecyclePhase.BUNDLE)) {
+    return commandTask(SpringBootTaskNames.CONTAINERIZE, TargetLifecycle.Build(BuildLifecyclePhase.PACKAGE)) {
         description("Build container image using Cloud Native Buildpacks")
         command(builder.toCommandString())
         workingDirectory(projectPath)
@@ -112,6 +112,9 @@ fun createSpringBootBuildImageTask(
         )
         outputs = (userOptions["outputs"] as? List<String>) ?: emptyList() // Image is stored in Docker
         options = finalOptions
+        
+        // Explicit dependency on Maven package task since we need the JAR file
+        dependsOn = (userOptions["dependsOn"] as? List<String>) ?: listOf("maven-package")
         
         cacheable((userOptions["cache"] as? Boolean) ?: false) // Image building typically not cached
     }

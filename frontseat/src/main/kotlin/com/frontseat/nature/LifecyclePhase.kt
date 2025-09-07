@@ -7,13 +7,7 @@ enum class DevelopmentLifecyclePhase(val order: Int) {
     FORMAT(1),          // format source code (prettier, spotless, etc.)
     LINT(2),            // lint source code
     START(3),           // start application locally (Spring Boot, Node dev server, etc.)
-    WATCH(4),           // watch files for changes
-    RELOAD(5),          // hot reload on changes
-    DEBUG(6),           // run in debug mode
-    RUN(7),             // run from packaged artifact
-    PROFILE(8),         // run with profiling
-    MONITOR(9),         // monitor application metrics
-    NUKE(10)            // deep clean - remove all generated files, node_modules, etc.
+    NUKE(4)             // deep clean - remove all generated files, node_modules, etc.
 }
 
 /**
@@ -21,32 +15,23 @@ enum class DevelopmentLifecyclePhase(val order: Int) {
  */
 enum class BuildLifecyclePhase(val order: Int) {
     VALIDATE(1),        // validate project structure
-    INITIALIZE(2),      // setup, clean, prepare workspace
-    GENERATE(3),        // generate source code
-    COMPILE(4),         // compile source code
-    TEST(5),            // run unit tests
-    PACKAGE(6),         // create versionless artifacts (JAR, Docker image, etc.)
-    VERIFY(7)           // integration tests, quality checks
+    GENERATE(2),        // generate source code
+    COMPILE(3),         // compile source code
+    TEST(4),            // run unit tests
+    PACKAGE(5),         // create versionless artifacts (JAR, Docker image, etc.)
+    VERIFY(6)           // integration tests, quality checks
 }
 
 /**
- * Release lifecycle phases matching JReleaser workflow
- * https://jreleaser.org/guide/latest/concepts/workflow.html
+ * Release lifecycle phases for versioning and distributing artifacts
  */
 enum class ReleaseLifecyclePhase(val order: Int) {
-    DOWNLOAD(1),         // download external assets needed for release
-    ASSEMBLE(2),         // prepare platform-specific distributions (jlink, native, etc.)
-    CHANGELOG(3),        // generate release changelog from commits
-    CHECKSUM(4),         // calculate SHA256 checksums for all files
-    CATALOG(5),          // create Software Bill of Materials (SBOMs)
-    SIGN(6),             // PGP sign artifacts and checksums
-    DEPLOY(7),           // deploy staged artifacts to staging repos
-    UPLOAD(8),           // upload distribution artifacts and files
-    RELEASE(9),          // create release in remote Git repository (GitHub/GitLab)
-    PREPARE(10),         // generate files for packagers (Homebrew formula, etc.)
-    BUNDLE(11),          // process prepared files into specific bundles
-    PUBLISH(12),         // publish bundle to registries (Maven Central, Docker Hub, etc.)
-    ANNOUNCE(13)         // announce release to various channels (Twitter, Slack, etc.)
+    VERSION(1),          // apply version to artifacts (tag, stamp, rename)
+    ASSEMBLE(2),         // create platform-specific distributions (jlink, native, etc.)
+    SECURE(3),           // sign artifacts, calculate checksums, security checks
+    RELEASE(4),          // create release in Git repository with changelog
+    PUBLISH(5),          // publish to registries (Maven Central, Docker Hub, etc.)
+    ANNOUNCE(6)          // announce release to various channels
 }
 
 /**

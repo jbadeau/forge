@@ -9,15 +9,15 @@ object MavenNatureIds {
 
 object MavenTaskNames {
     // Maven lifecycle tasks
-    const val VALIDATE = "validate"
-    const val INITIALIZE = "initialize"
-    const val COMPILE = "compile"
-    const val TEST = "test"
-    const val PACKAGE = "package"
-    const val VERIFY = "verify"
-    const val INSTALL = "install"
-    const val DEPLOY = "deploy"
-    const val CLEAN = "clean"
+    const val VALIDATE = "maven-validate"
+    const val INITIALIZE = "maven-initialize"
+    const val COMPILE = "maven-compile"
+    const val TEST = "maven-test"
+    const val PACKAGE = "maven-package"
+    const val VERIFY = "maven-verify"
+    const val INSTALL = "maven-install"
+    const val DEPLOY = "maven-deploy"
+    const val CLEAN = "maven-clean"
     
     // Alias for common tasks
     const val BUILD = COMPILE

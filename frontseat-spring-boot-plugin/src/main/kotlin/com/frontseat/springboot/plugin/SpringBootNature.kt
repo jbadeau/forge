@@ -35,7 +35,7 @@ class SpringBootNature : ProjectNature {
             tasks[SpringBootTaskNames.START] = createSpringBootStartTask(projectPath)
             
             // Build container image using Cloud Native Buildpacks
-            tasks[SpringBootTaskNames.BUILD_IMAGE] = createSpringBootBuildImageTask(projectPath)
+            tasks[SpringBootTaskNames.CONTAINERIZE] = createSpringBootContainerizeTask(projectPath)
         } else {
             logger.debug("SpringBoot nature found but no supported build system (maven) available for project: $projectPath")
         }
