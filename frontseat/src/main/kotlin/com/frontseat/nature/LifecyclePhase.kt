@@ -16,7 +16,7 @@ enum class DevelopmentLifecyclePhase(val order: Int) {
 enum class BuildLifecyclePhase(val order: Int) {
     VALIDATE(1),        // validate project structure
     GENERATE(2),        // generate source code
-    COMPILE(3),         // compile source code
+    BUILD(3),           // compile source code
     TEST(4),            // run unit tests
     PACKAGE(5),         // create versionless artifacts (JAR, Docker image, etc.)
     VERIFY(6)           // integration tests, quality checks

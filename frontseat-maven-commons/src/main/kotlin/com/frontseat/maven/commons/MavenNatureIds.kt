@@ -11,7 +11,7 @@ object MavenTaskNames {
     // Maven lifecycle tasks
     const val VALIDATE = "maven-validate"
     const val INITIALIZE = "maven-initialize"
-    const val COMPILE = "maven-compile"
+    const val BUILD = "maven-build"
     const val TEST = "maven-test"
     const val PACKAGE = "maven-package"
     const val VERIFY = "maven-verify"
@@ -20,6 +20,5 @@ object MavenTaskNames {
     const val CLEAN = "maven-clean"
     
     // Alias for common tasks
-    const val BUILD = COMPILE
     const val PUBLISH = DEPLOY
 }
