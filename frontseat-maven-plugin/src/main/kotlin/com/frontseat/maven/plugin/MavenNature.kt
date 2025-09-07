@@ -2,6 +2,10 @@ package com.frontseat.maven.plugin
 
 import com.frontseat.annotation.AutoRegister
 import com.frontseat.annotation.Nature
+import com.frontseat.maven.commons.MavenCommandBuilder
+import com.frontseat.maven.commons.MavenUtils
+import com.frontseat.maven.commons.MavenNatureIds
+import com.frontseat.maven.commons.MavenTaskNames
 import com.frontseat.nature.*
 import com.frontseat.command.CommandTask
 import com.frontseat.command.commandTask
@@ -10,7 +14,7 @@ import java.nio.file.Path
 /**
  * Maven project nature that provides Maven build system capabilities
  */
-@Nature(id = "maven", layer = NatureLayers.BUILD_SYSTEMS)
+@Nature(id = MavenNatureIds.MAVEN, layer = NatureLayers.BUILD_SYSTEMS)
 @AutoRegister
 class MavenNature : ProjectNature {
     // No need to override id or layer - they come from @Nature annotation!
@@ -23,107 +27,55 @@ class MavenNature : ProjectNature {
         val tasks = mutableMapOf<String, CommandTask>()
         
         // Build lifecycle tasks - using official lifecycle phase names
-        tasks["validate"] = commandTask("validate", TargetLifecycle.Build(BuildLifecyclePhase.VALIDATE)) {
+        tasks[MavenTaskNames.VALIDATE] = commandTask(MavenTaskNames.VALIDATE, TargetLifecycle.Build(BuildLifecyclePhase.VALIDATE)) {
             description("Validate the project structure and dependencies")
             command(MavenCommandBuilder.build().inProject(projectPath).withPhase("validate").toCommandString())
             workingDirectory(projectPath)
         }
         
-        tasks["initialize"] = commandTask("initialize", TargetLifecycle.Build(BuildLifecyclePhase.INITIALIZE)) {
+        tasks[MavenTaskNames.INITIALIZE] = commandTask(MavenTaskNames.INITIALIZE, TargetLifecycle.Build(BuildLifecyclePhase.INITIALIZE)) {
             description("Initialize the project (clean)")
             command(MavenCommandBuilder.build().inProject(projectPath).withPhase("clean").toCommandString())
             workingDirectory(projectPath)
         }
         
-        // Generate phase - skip if no code generation needed
-        
-        tasks["compile"] = commandTask("compile", TargetLifecycle.Build(BuildLifecyclePhase.COMPILE)) {
+        tasks[MavenTaskNames.COMPILE] = commandTask(MavenTaskNames.COMPILE, TargetLifecycle.Build(BuildLifecyclePhase.COMPILE)) {
             description("Compile source code")
             command(MavenCommandBuilder.build().inProject(projectPath).withPhase("compile").toCommandString())
             workingDirectory(projectPath)
         }
         
-        tasks["test"] = NatureTargetDefinition(
-            configuration = TargetConfiguration(
-                executor = "maven",
-                options = MavenCommandBuilder.build()
-                    .inProject(projectPath)
-                    .withPhase("test")
-                    .toOptions()
-            ),
-            lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.TEST)
-        )
+        tasks[MavenTaskNames.TEST] = commandTask(MavenTaskNames.TEST, TargetLifecycle.Build(BuildLifecyclePhase.TEST)) {
+            description("Run tests")
+            command(MavenCommandBuilder.build().inProject(projectPath).withPhase("test").toCommandString())
+            workingDirectory(projectPath)
+        }
         
-        tasks["bu = NatureTargetDefinition(
-            configuration = TargetConfiguration(
-                executor = "maven",
-                options = MavenCommandBuilder.build()
-                    .inProject(projectPath)
-                    .withPhase("package")
-                    .toOptions()
-            ),
-            lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.BUNDLE)
-        )
+        tasks[MavenTaskNames.PACKAGE] = commandTask(MavenTaskNames.PACKAGE, TargetLifecycle.Build(BuildLifecyclePhase.BUNDLE)) {
+            description("Package compiled code")
+            command(MavenCommandBuilder.build().inProject(projectPath).withPhase("package").toCommandString())
+            workingDirectory(projectPath)
+        }
         
-        tasks["verify"] = NatureTargetDefinition(
-            configuration = TargetConfiguration(
-                executor = "maven",
-                options = MavenCommandBuilder.build()
-                    .inProject(projectPath)
-                    .withPhase("verify")
-                    .toOptions()
-            ),
-            lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.VERIFY)
-        )
+        tasks[MavenTaskNames.VERIFY] = commandTask(MavenTaskNames.VERIFY, TargetLifecycle.Build(BuildLifecyclePhase.VERIFY)) {
+            description("Verify package integrity")
+            command(MavenCommandBuilder.build().inProject(projectPath).withPhase("verify").toCommandString())
+            workingDirectory(projectPath)
+        }
         
-        // Release lifecycle tasks - using official lifecycle phase names
-        tasks["publish"] = NatureTargetDefinition(
-            configuration = TargetConfiguration(
-                executor = "maven",
-                options = MavenCommandBuilder.build()
-                    .inProject(projectPath)
-                    .withPhase("deploy")
-                    .toOptions()
-            ),
-            lifecycle = TargetLifecycle.Release(ReleaseLifecyclePhase.PUBLISH),
-            cacheable = false
-        )
+        tasks[MavenTaskNames.PUBLISH] = commandTask(MavenTaskNames.PUBLISH, TargetLifecycle.Release(ReleaseLifecyclePhase.PUBLISH)) {
+            description("Deploy to repository")
+            command(MavenCommandBuilder.build().inProject(projectPath).withPhase("deploy").toCommandString())
+            workingDirectory(projectPath)
+            cacheable(false) // Publishing is not cacheable
+        }
         
         return tasks
     }
     
     override fun createDependencies(projectPath: Path, context: NatureContext): List<ProjectDependency> {
-        val dependencies = mutableListOf<ProjectDependency>()
-        
-        // Parse pom.xml to find Maven dependencies that reference other projects in workspace
-        val pomFile = projectPath.resolve("pom.xml")
-        if (pomFile.exists()) {
-            try {
-                val pomContent = pomFile.readText()
-                val currentProjectName = projectPath.fileName.toString()
-                
-                // Look for other projects in workspace that might be Maven dependencies
-                context.findProjects { project ->
-                    project.natures.contains("maven") && project.name != currentProjectName
-                }.forEach { project ->
-                    // Check if this project is referenced in pom.xml
-                    // Simple check - could be more sophisticated with XML parsing
-                    if (pomContent.contains("<artifactId>${project.name}</artifactId>")) {
-                        dependencies.add(
-                            ProjectDependency(
-                                source = currentProjectName,
-                                target = project.name,
-                                type = DependencyType.COMPILE,
-                                scope = DependencyScope.BUILD
-                            )
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                // Log error but continue
-            }
-        }
-        
-        return dependencies
+        // Maven dependency analysis could be implemented here
+        // For now, return empty list
+        return emptyList()
     }
 }

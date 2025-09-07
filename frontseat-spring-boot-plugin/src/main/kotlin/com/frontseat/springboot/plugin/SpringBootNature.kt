@@ -2,7 +2,11 @@ package com.frontseat.springboot.plugin
 
 import com.frontseat.annotation.AutoRegister
 import com.frontseat.annotation.Nature
-import com.frontseat.maven.plugin.MavenCommandBuilder
+import com.frontseat.maven.commons.MavenCommandBuilder
+import com.frontseat.maven.commons.MavenNatureIds
+import com.frontseat.springboot.commons.SpringBootUtils
+import com.frontseat.springboot.commons.SpringBootNatureIds
+import com.frontseat.springboot.commons.SpringBootTaskNames
 import com.frontseat.nature.*
 import com.frontseat.command.CommandTask
 import com.frontseat.command.commandTask
@@ -12,7 +16,7 @@ import java.nio.file.Path
 /**
  * Spring Boot project nature that provides Spring Boot specific capabilities
  */
-@Nature(id = "spring-boot", layer = NatureLayers.FRAMEWORKS)
+@Nature(id = SpringBootNatureIds.SPRING_BOOT, layer = NatureLayers.FRAMEWORKS)
 @AutoRegister
 class SpringBootNature : ProjectNature {
     private val logger = LoggerFactory.getLogger(SpringBootNature::class.java)
@@ -27,13 +31,13 @@ class SpringBootNature : ProjectNature {
         val tasks = mutableMapOf<String, CommandTask>()
         
         // Check if Maven nature is available and create serve task
-        if (context.hasNature("maven")) {
+        if (context.hasNature(MavenNatureIds.MAVEN)) {
             val command = MavenCommandBuilder.build()
                 .inProject(projectPath)
                 .withGoal("spring-boot:run")
                 .toCommandString()
             
-            tasks["serve"] = commandTask("serve", TargetLifecycle.Development(DevelopmentLifecyclePhase.SERVE)) {
+            tasks[SpringBootTaskNames.SERVE] = commandTask(SpringBootTaskNames.SERVE, TargetLifecycle.Development(DevelopmentLifecyclePhase.SERVE)) {
                 description("Start Spring Boot application for development")
                 command(command)
                 workingDirectory(projectPath)

@@ -1,4 +1,4 @@
-package com.frontseat.springboot.plugin
+package com.frontseat.springboot.commons
 
 import java.nio.file.Path
 import kotlin.io.path.exists

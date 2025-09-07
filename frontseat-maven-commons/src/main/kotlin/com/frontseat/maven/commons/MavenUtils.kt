@@ -1,4 +1,4 @@
-package com.frontseat.maven.plugin
+package com.frontseat.maven.commons
 
 import java.nio.file.Path
 import kotlin.io.path.*

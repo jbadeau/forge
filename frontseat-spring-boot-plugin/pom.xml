@@ -22,7 +22,12 @@
         </dependency>
         <dependency>
             <groupId>com.frontseat</groupId>
-            <artifactId>frontseat-maven-plugin</artifactId>
+            <artifactId>frontseat-maven-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.frontseat</groupId>
+            <artifactId>frontseat-spring-boot-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
