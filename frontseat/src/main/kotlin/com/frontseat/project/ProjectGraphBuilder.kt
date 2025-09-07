@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.frontseat.backstage.BackstageProjectDiscoverer
+import com.frontseat.nature.NatureRegistry
 import com.frontseat.workspace.WorkspaceConfiguration
 import com.frontseat.plugin.api.ProjectConfiguration
 import com.frontseat.plugin.api.TargetConfiguration
@@ -17,8 +18,9 @@ class ProjectGraphBuilder(
     private val workspaceRoot: Path,
     private val plugins: List<DiscoveryPlugin> = emptyList(),
     private val enableInference: Boolean = true,
-    private val backstageDiscoverer: BackstageProjectDiscoverer = BackstageProjectDiscoverer()
+    private val natureRegistry: NatureRegistry
 ) {
+    private val backstageDiscoverer = BackstageProjectDiscoverer(natureRegistry)
     private val logger = LoggerFactory.getLogger(ProjectGraphBuilder::class.java)
     private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
     

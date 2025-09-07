@@ -1,5 +1,6 @@
 package com.frontseat.backstage
 
+import com.frontseat.nature.NatureRegistry
 import com.frontseat.nature.ProjectNature
 import com.frontseat.plugin.api.ProjectConfiguration
 import com.frontseat.plugin.api.TargetConfiguration
@@ -16,10 +17,10 @@ import kotlin.streams.toList
  * Discovers projects based on Backstage catalog-info.yaml files
  * instead of build tool files (pom.xml, package.json, etc.)
  */
-class BackstageProjectDiscoverer {
+class BackstageProjectDiscoverer(private val natureRegistry: NatureRegistry) {
     private val logger = LoggerFactory.getLogger(BackstageProjectDiscoverer::class.java)
     private val catalogParser = CatalogParser()
-    private val projectInferenceEngine = com.frontseat.nature.ProjectInferenceEngine()
+    private val projectInferenceEngine = com.frontseat.nature.ProjectInferenceEngine(natureRegistry)
     
     companion object {
         const val CATALOG_FILE_NAME = "catalog-info.yaml"

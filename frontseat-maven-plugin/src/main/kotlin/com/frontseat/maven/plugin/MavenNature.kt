@@ -13,10 +13,9 @@ class MavenNature : ProjectNature {
     override val name = "Maven"
     override val version = "1.0.0"
     override val description = "Maven build system support"
-    override val dependencies = emptyList<String>()
-    override val conflicts = listOf("gradle")
+    override val layer = NatureLayers.BUILD_SYSTEMS
     
-    override fun isApplicable(projectPath: Path): Boolean {
+    override fun isApplicable(projectPath: Path, context: NatureContext?): Boolean {
         return MavenUtils.isMavenProject(projectPath)
     }
     
@@ -70,7 +69,7 @@ class MavenNature : ProjectNature {
             lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.TEST)
         )
         
-        tasks["bundle"] = NatureTargetDefinition(
+        tasks["bu = NatureTargetDefinition(
             configuration = TargetConfiguration(
                 executor = "maven",
                 options = MavenCommandBuilder.build()

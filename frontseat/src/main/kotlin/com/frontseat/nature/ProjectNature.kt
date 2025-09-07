@@ -30,19 +30,24 @@ interface ProjectNature {
     val description: String
     
     /**
-     * Natures that this nature requires to be present
+     * Layer number for this nature - lower layers are applied first
+     * Standard layers:
+     * 0 = Build Systems (Maven, Gradle, Cargo, npm, etc.)
+     * 1 = Languages (Java, Kotlin, JavaScript, TypeScript, Rust, Go, etc.)
+     * 2 = Runtimes/Platforms (Node.js, JVM, .NET, etc.)
+     * 3 = Frameworks (Spring Boot, React, Angular, Next.js, FastAPI, etc.)
+     * 4 = Testing (JUnit, Jest, Cypress, Playwright, etc.)
+     * 5 = Infrastructure (Docker, Kubernetes, Terraform, etc.)
+     * 6 = Quality/Analysis (SonarQube, ESLint, Prettier, etc.)
+     * 7 = Deployment/Distribution (Jib, Docker Build, NPM Publish, etc.)
      */
-    val dependencies: List<String>
+    val layer: Int
+    
     
     /**
-     * Natures that this nature conflicts with (cannot be used together)
+     * Check if this nature is applicable to the given project path and context
      */
-    val conflicts: List<String>
-    
-    /**
-     * Check if this nature is applicable to the given project path
-     */
-    fun isApplicable(projectPath: Path): Boolean
+    fun isApplicable(projectPath: Path, context: NatureContext? = null): Boolean
     
     /**
      * Create tasks for this nature, bound to appropriate lifecycle phases
@@ -140,3 +145,45 @@ data class ProjectInfo(
     val natures: Set<String>,
     val type: String? = null
 )
+
+/**
+ * Default implementation of NatureContext
+ */
+class NatureContextImpl(
+    private val projectPath: Path,
+    private val appliedNatures: Set<String>,
+    private val availableTasks: MutableSet<String> = mutableSetOf()
+) : NatureContext {
+    
+    override fun getAppliedNatures(): Set<String> = appliedNatures
+    
+    override fun hasNature(natureId: String): Boolean = appliedNatures.contains(natureId)
+    
+    override fun hasTask(taskName: String): Boolean = availableTasks.contains(taskName)
+    
+    override fun getProjectPath(): Path = projectPath
+    
+    override fun getAllProjects(): List<ProjectInfo> {
+        // TODO: Implement workspace-aware project discovery
+        return emptyList()
+    }
+    
+    override fun findProjects(predicate: (ProjectInfo) -> Boolean): List<ProjectInfo> {
+        // TODO: Implement workspace-aware project search
+        return emptyList()
+    }
+}
+
+/**
+ * Standard nature layers - lower numbers are applied first
+ */
+object NatureLayers {
+    const val BUILD_SYSTEMS = 0     // Maven, Gradle, Cargo, npm, etc.
+    const val LANGUAGES = 1         // Java, Kotlin, JavaScript, TypeScript, Rust, Go, etc.
+    const val RUNTIMES = 2          // Node.js, JVM, .NET, etc.
+    const val FRAMEWORKS = 3        // Spring Boot, React, Angular, Next.js, FastAPI, etc.
+    const val TESTING = 4           // JUnit, Jest, Cypress, Playwright, etc.
+    const val INFRASTRUCTURE = 5    // Docker, Kubernetes, Terraform, etc.
+    const val QUALITY = 6           // SonarQube, ESLint, Prettier, etc.
+    const val DEPLOYMENT = 7        // Jib, Docker Build, NPM Publish, etc.
+}

@@ -209,7 +209,8 @@ class JsonRpcServer {
     
     private suspend fun handleWorkspaceScan(params: Any?): Map<String, Any> {
         val workspaceRoot = Paths.get("").toAbsolutePath()
-        val graphBuilder = ProjectGraphBuilder(workspaceRoot)
+        val natureRegistry = com.frontseat.nature.NatureRegistry()
+        val graphBuilder = ProjectGraphBuilder(workspaceRoot, emptyList(), true, natureRegistry)
         val projectGraph = graphBuilder.buildProjectGraph()
         
         return mapOf(

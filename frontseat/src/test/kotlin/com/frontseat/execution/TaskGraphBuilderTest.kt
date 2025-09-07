@@ -20,7 +20,8 @@ class TaskGraphBuilderTest {
         assertNotNull(resourcesPath, "Test workspace not found in resources")
         testWorkspaceRoot = Paths.get(resourcesPath!!)
         
-        val graphBuilder = ProjectGraphBuilder(testWorkspaceRoot)
+        val natureRegistry = com.frontseat.nature.NatureRegistry()
+        val graphBuilder = ProjectGraphBuilder(testWorkspaceRoot, emptyList(), true, natureRegistry)
         val projectGraph = graphBuilder.buildProjectGraph()
         taskGraphBuilder = TaskGraphBuilder(projectGraph)
     }

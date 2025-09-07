@@ -17,7 +17,8 @@ class ProjectGraphBuilderTest {
         val resourcesPath = this::class.java.classLoader.getResource("test-workspace")?.toURI()
         assertNotNull(resourcesPath, "Test workspace not found in resources")
         testWorkspaceRoot = Paths.get(resourcesPath!!)
-        projectGraphBuilder = ProjectGraphBuilder(testWorkspaceRoot)
+        val natureRegistry = com.frontseat.nature.NatureRegistry()
+        projectGraphBuilder = ProjectGraphBuilder(testWorkspaceRoot, emptyList(), true, natureRegistry)
     }
     
     @Test

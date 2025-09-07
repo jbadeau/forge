@@ -15,7 +15,7 @@ class SpringBootPlugin : FrontseatPlugin {
     
     override fun initialize(workspace: Workspace) {
         // Register Spring Boot nature with the nature registry
-        val natureRegistry = NatureRegistry.instance
+        val natureRegistry = workspace.getNatureRegistry()
         natureRegistry.register(SpringBootNature())
     }
     

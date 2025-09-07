@@ -1,5 +1,6 @@
 package com.frontseat.springboot.plugin
 
+import com.frontseat.maven.plugin.MavenUtils
 import com.frontseat.nature.*
 import com.frontseat.plugin.api.TargetConfiguration
 import java.nio.file.Path
@@ -13,11 +14,16 @@ class SpringBootNature : ProjectNature {
     override val name = "Spring Boot"
     override val version = "1.0.0"
     override val description = "Spring Boot application framework support"
-    override val dependencies = emptyList<String>() // Can work with either maven or gradle
-    override val conflicts = emptyList<String>()
+    override val layer = NatureLayers.FRAMEWORKS
     
-    override fun isApplicable(projectPath: Path): Boolean {
-        return SpringBootInference.isSpringBootProject(projectPath.toString())
+    override fun isApplicable(projectPath: Path, context: NatureContext?): Boolean {
+        // Spring Boot requires both Spring Boot markers AND a build system nature
+        val hasSpringBoot = SpringBootInference.isSpringBootProject(projectPath.toString())
+        
+        // Since we're in layer 2, build system natures (layer 0) are already applied in context
+        val hasBuildSystem = context?.hasNature("maven") ?: false || context?.hasNature("gradle") ?: false
+        
+        return hasSpringBoot && hasBuildSystem
     }
     
     override fun createTasks(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition> {

@@ -10,6 +10,8 @@ import com.frontseat.task.Task
 import com.frontseat.task.TaskId
 import com.frontseat.task.TaskExecutionPlan
 import com.frontseat.plugin.PluginManager
+import com.frontseat.nature.NatureRegistry
+import com.frontseat.nature.ProjectNature
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
@@ -24,7 +26,8 @@ import kotlin.io.path.isDirectory
 class Workspace private constructor(
     val root: Path,
     private val configuration: WorkspaceConfiguration,
-    private val pluginManager: PluginManager
+    private val pluginManager: PluginManager,
+    private val natureRegistry: NatureRegistry = NatureRegistry()
 ) {
     
     /**
@@ -33,7 +36,7 @@ class Workspace private constructor(
     fun getProjectGraph(): ProjectGraph {
         val discoveryPlugins = pluginManager.loadPlugins(root)
             .filterIsInstance<DiscoveryPlugin>()
-        val builder = ProjectGraphBuilder(root, discoveryPlugins)
+        val builder = ProjectGraphBuilder(root, discoveryPlugins, true, natureRegistry)
         return builder.buildProjectGraph()
     }
     
@@ -149,6 +152,13 @@ class Workspace private constructor(
         val tasks = taskIds.mapNotNull { getTask(it) }.toSet()
         return getTaskGraph().getExecutionPlan(tasks)
     }
+    
+    // === Plugin/Nature Registration ===
+    
+    /**
+     * Get the nature registry
+     */
+    fun getNatureRegistry(): NatureRegistry = natureRegistry
     
     // === Workspace Info ===
     

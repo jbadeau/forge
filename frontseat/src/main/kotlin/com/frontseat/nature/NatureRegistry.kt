@@ -33,59 +33,46 @@ class NatureRegistry {
     }
     
     /**
-     * Find natures that are applicable to the given project path
+     * Find natures that are applicable to the given project path using layered approach
      */
     fun findApplicableNatures(projectPath: java.nio.file.Path): Set<ProjectNature> {
-        return natures.values.filter { nature ->
-            try {
-                nature.isApplicable(projectPath)
-            } catch (e: Exception) {
-                logger.warn("Error checking nature ${nature.id} applicability", e)
-                false
-            }
-        }.toSet()
-    }
-    
-    /**
-     * Resolve nature dependencies and conflicts
-     */
-    fun resolveNatures(candidates: Set<ProjectNature>): Set<ProjectNature> {
-        val resolved = mutableSetOf<ProjectNature>()
-        val toProcess = candidates.toMutableSet()
+        val applicableNatures = mutableSetOf<ProjectNature>()
         
-        // Add dependencies recursively
-        while (toProcess.isNotEmpty()) {
-            val nature = toProcess.first()
-            toProcess.remove(nature)
+        // Group natures by layer
+        val naturesGroupedByLayer = natures.values.groupBy { it.layer }.toSortedMap()
+        
+        // Apply natures layer by layer
+        for ((layer, layerNatures) in naturesGroupedByLayer) {
+            logger.debug("Processing nature layer $layer with ${layerNatures.size} natures")
             
-            // Add dependencies
-            nature.dependencies.forEach { depId ->
-                val depNature = getNature(depId)
-                if (depNature != null && !resolved.contains(depNature)) {
-                    toProcess.add(depNature)
-                } else if (depNature == null) {
-                    logger.warn("Missing dependency: ${nature.id} requires $depId")
+            // Create context with currently applied natures
+            val context = NatureContextImpl(projectPath, applicableNatures.map { it.id }.toSet())
+            
+            // Check applicability of natures in current layer
+            val layerApplicableNatures = layerNatures.filter { nature ->
+                try {
+                    nature.isApplicable(projectPath, context)
+                } catch (e: Exception) {
+                    logger.warn("Error checking nature ${nature.id} applicability in layer $layer", e)
+                    false
                 }
             }
             
-            // Check for conflicts
-            val hasConflicts = nature.conflicts.any { conflictId ->
-                resolved.any { it.id == conflictId }
-            }
-            
-            if (!hasConflicts) {
-                resolved.add(nature)
-            } else {
-                logger.warn("Nature ${nature.id} conflicts with existing natures")
-            }
+            applicableNatures.addAll(layerApplicableNatures)
+            logger.debug("Layer $layer added ${layerApplicableNatures.size} applicable natures: ${layerApplicableNatures.map { it.id }}")
         }
         
-        return resolved
+        return applicableNatures
+    }
+    
+    /**
+     * Since natures now handle dependencies and conflicts at runtime in isApplicable(),
+     * this method just returns the candidates as-is
+     */
+    fun resolveNatures(candidates: Set<ProjectNature>): Set<ProjectNature> {
+        // Natures are responsible for their own validation in isApplicable()
+        return candidates
     }
     
     
-    companion object {
-        @JvmStatic
-        val instance: NatureRegistry by lazy { NatureRegistry() }
-    }
 }

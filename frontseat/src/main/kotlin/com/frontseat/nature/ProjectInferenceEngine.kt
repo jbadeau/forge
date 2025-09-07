@@ -8,7 +8,7 @@ import java.nio.file.Path
 /**
  * Engine for inferring project configuration based on natures
  */
-class ProjectInferenceEngine(private val natureRegistry: NatureRegistry = NatureRegistry.instance) {
+class ProjectInferenceEngine(private val natureRegistry: NatureRegistry) {
     private val logger = LoggerFactory.getLogger(ProjectInferenceEngine::class.java)
     
     /**
@@ -171,30 +171,3 @@ data class InferredProject(
     }
 }
 
-/**
- * Implementation of NatureContext
- */
-private class NatureContextImpl(
-    private val projectPath: Path,
-    private val appliedNatures: Set<String>,
-    private val availableTasks: MutableSet<String> = mutableSetOf()
-) : NatureContext {
-    
-    override fun getAppliedNatures(): Set<String> = appliedNatures
-    
-    override fun hasNature(natureId: String): Boolean = appliedNatures.contains(natureId)
-    
-    override fun hasTask(taskName: String): Boolean = availableTasks.contains(taskName)
-    
-    override fun getProjectPath(): Path = projectPath
-    
-    override fun getAllProjects(): List<ProjectInfo> {
-        // TODO: Implement workspace-aware project discovery
-        return emptyList()
-    }
-    
-    override fun findProjects(predicate: (ProjectInfo) -> Boolean): List<ProjectInfo> {
-        // TODO: Implement workspace-aware project search
-        return emptyList()
-    }
-}
