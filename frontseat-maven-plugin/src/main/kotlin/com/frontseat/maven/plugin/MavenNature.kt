@@ -20,7 +20,7 @@ class MavenNature : ProjectNature {
         return MavenUtils.isMavenProject(projectPath)
     }
     
-    override fun createTargets(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition> {
+    override fun createTasks(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition> {
         val targets = mutableMapOf<String, NatureTargetDefinition>()
         
         // Build lifecycle targets - using official lifecycle phase names

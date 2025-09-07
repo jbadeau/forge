@@ -45,9 +45,9 @@ interface ProjectNature {
     fun isApplicable(projectPath: Path): Boolean
     
     /**
-     * Create targets for this nature, bound to appropriate lifecycle phases
+     * Create tasks for this nature, bound to appropriate lifecycle phases
      */
-    fun createTargets(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition>
+    fun createTasks(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition>
     
     /**
      * Create project dependencies for this nature

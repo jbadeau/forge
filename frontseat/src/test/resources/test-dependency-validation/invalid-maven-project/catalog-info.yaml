@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: order-service
+  description: Order processing service
+spec:
+  type: service
+  lifecycle: production
+  owner: backend-team
+  system: commerce
+  dependsOn:
+    - component:auth-service
+    # Missing: data-lib and payment-service dependencies

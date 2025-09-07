@@ -291,26 +291,25 @@ object BackstageAnnotations {
 }
 
 /**
- * Project nature types that can be inferred from annotations
+ * Common project nature IDs that can be inferred
  */
-enum class ProjectNature {
-    MAVEN,
-    GRADLE,
-    NPM,
-    YARN,
-    PNPM,
-    GO,
-    RUST,
-    PYTHON,
-    DOCKER,
-    KUBERNETES,
-    TERRAFORM,
-    SPRING_BOOT,
-    REACT,
-    ANGULAR,
-    VUE,
-    NEXTJS,
-    NODEJS,
-    DOTNET,
-    CUSTOM
+object ProjectNatureIds {
+    const val MAVEN = "maven"
+    const val GRADLE = "gradle"
+    const val NPM = "npm"
+    const val YARN = "yarn"
+    const val PNPM = "pnpm"
+    const val RUST = "rust"
+    const val PYTHON = "python"
+    const val DOCKER = "docker"
+    const val KUBERNETES = "kubernetes"
+    const val TERRAFORM = "terraform"
+    const val SPRING_BOOT = "spring-boot"
+    const val REACT = "react"
+    const val ANGULAR = "angular"
+    const val VUE = "vue"
+    const val NEXTJS = "nextjs"
+    const val NODEJS = "nodejs"
+    const val DOTNET = "dotnet"
+    const val CUSTOM = "custom"
 }

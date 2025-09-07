@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>com.frontseat</groupId>
+    <artifactId>order-service</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    
+    <dependencies>
+        <!-- Declared dependency -->
+        <dependency>
+            <groupId>com.frontseat</groupId>
+            <artifactId>auth-service</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        
+        <!-- VIOLATION: Undeclared internal dependencies -->
+        <dependency>
+            <groupId>com.frontseat</groupId>
+            <artifactId>data-lib</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.frontseat</groupId>
+            <artifactId>payment-service</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        
+        <!-- External dependencies (allowed) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+    </dependencies>
+</project>

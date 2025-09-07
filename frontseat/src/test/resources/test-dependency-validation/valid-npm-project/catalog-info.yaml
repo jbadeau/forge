@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: web-app
+  description: Frontend web application
+spec:
+  type: website
+  lifecycle: production
+  owner: frontend-team
+  system: web-platform
+  consumesApis:
+    - user-api
+    - product-api

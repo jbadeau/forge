@@ -1,5 +1,6 @@
 package com.frontseat.backstage
 
+import com.frontseat.nature.ProjectNature
 import com.frontseat.plugin.api.ProjectConfiguration
 import com.frontseat.plugin.api.TargetConfiguration
 import com.frontseat.plugin.api.InferenceResult
@@ -19,6 +20,7 @@ class BackstageProjectDiscoverer {
     private val logger = LoggerFactory.getLogger(BackstageProjectDiscoverer::class.java)
     private val catalogParser = CatalogParser()
     private val natureInference = NatureInferenceService()
+    private val dependencyInference = DependencyInferenceService()
     
     companion object {
         const val CATALOG_FILE_NAME = "catalog-info.yaml"
@@ -170,6 +172,25 @@ class BackstageProjectDiscoverer {
         // Generate targets based on natures only
         val targets = generateTargets(component, natures)
         
+        // Infer dependencies from build files based on natures
+        val inferredDependencies = dependencyInference.inferDependencies(projectRoot, projectName, natures)
+        
+        // Start with inferred dependencies (natures are primary source of truth)
+        val allBackstageDependencies = mutableSetOf<String>().apply {
+            addAll(inferredDependencies)
+        }
+        
+        // Add explicit Backstage dependencies only if they can't be inferred
+        val explicitDeps = component.spec.dependsOn + component.spec.consumesApis + component.spec.providesApis
+        explicitDeps.forEach { dep ->
+            if (!allBackstageDependencies.contains(dep)) {
+                allBackstageDependencies.add(dep)
+                logger.debug("Added explicit dependency '$dep' for $projectName (not inferred from build tools)")
+            }
+        }
+        
+        logger.debug("Dependencies for $projectName: inferred=${inferredDependencies.size}, explicit=${explicitDeps.size}, total=${allBackstageDependencies.size}")
+        
         // Extract tags from metadata
         val tags = mutableSetOf<String>().apply {
             addAll(component.metadata.tags)
@@ -198,23 +219,12 @@ class BackstageProjectDiscoverer {
         
         projects[projectName] = projectConfig
         
-        // Process dependencies
-        component.spec.dependsOn.forEach { dep ->
+        // Process all dependencies (explicit + inferred)
+        allBackstageDependencies.forEach { dep ->
             dependencies.add(
                 RawProjectGraphDependency(
                     source = projectName,
                     target = dep,
-                    type = DependencyType.IMPLICIT
-                )
-            )
-        }
-        
-        // Process API dependencies
-        component.spec.consumesApis.forEach { api ->
-            dependencies.add(
-                RawProjectGraphDependency(
-                    source = projectName,
-                    target = api,
                     type = DependencyType.IMPLICIT
                 )
             )
@@ -231,103 +241,18 @@ class BackstageProjectDiscoverer {
     ): Map<String, TargetConfiguration> {
         val targets = mutableMapOf<String, TargetConfiguration>()
         
-        // Generate standard targets based on natures
+        // Ask each nature to create its tasks
         natures.forEach { nature ->
-            when (nature) {
-                ProjectNature.MAVEN -> {
-                    targets.putIfAbsent("build", TargetConfiguration(
-                        executor = "frontseat:maven",
-                        options = mapOf("goal" to "compile"),
-                        dependsOn = emptyList()
-                    ))
-                    targets.putIfAbsent("test", TargetConfiguration(
-                        executor = "frontseat:maven",
-                        options = mapOf("goal" to "test"),
-                        dependsOn = listOf("build")
-                    ))
-                    targets.putIfAbsent("package", TargetConfiguration(
-                        executor = "frontseat:maven",
-                        options = mapOf("goal" to "package"),
-                        dependsOn = listOf("test")
-                    ))
-                }
-                ProjectNature.GRADLE -> {
-                    targets.putIfAbsent("build", TargetConfiguration(
-                        executor = "frontseat:gradle",
-                        options = mapOf("task" to "build"),
-                        dependsOn = emptyList()
-                    ))
-                    targets.putIfAbsent("test", TargetConfiguration(
-                        executor = "frontseat:gradle",
-                        options = mapOf("task" to "test"),
-                        dependsOn = emptyList()
-                    ))
-                }
-                ProjectNature.NPM, ProjectNature.YARN, ProjectNature.PNPM -> {
-                    val pm = when(nature) {
-                        ProjectNature.YARN -> "yarn"
-                        ProjectNature.PNPM -> "pnpm"
-                        else -> "npm"
-                    }
-                    targets.putIfAbsent("install", TargetConfiguration(
-                        executor = "frontseat:run-command",
-                        options = mapOf("command" to "$pm install"),
-                        dependsOn = emptyList()
-                    ))
-                    targets.putIfAbsent("build", TargetConfiguration(
-                        executor = "frontseat:run-command",
-                        options = mapOf("command" to "$pm run build"),
-                        dependsOn = listOf("install")
-                    ))
-                    targets.putIfAbsent("test", TargetConfiguration(
-                        executor = "frontseat:run-command",
-                        options = mapOf("command" to "$pm test"),
-                        dependsOn = listOf("install")
-                    ))
-                }
-                ProjectNature.GO -> {
-                    targets.putIfAbsent("build", TargetConfiguration(
-                        executor = "frontseat:run-command",
-                        options = mapOf("command" to "go build"),
-                        dependsOn = emptyList()
-                    ))
-                    targets.putIfAbsent("test", TargetConfiguration(
-                        executor = "frontseat:run-command",
-                        options = mapOf("command" to "go test ./..."),
-                        dependsOn = emptyList()
-                    ))
-                }
-                ProjectNature.PYTHON -> {
-                    targets.putIfAbsent("install", TargetConfiguration(
-                        executor = "frontseat:run-command",
-                        options = mapOf("command" to "pip install -r requirements.txt"),
-                        dependsOn = emptyList()
-                    ))
-                    targets.putIfAbsent("test", TargetConfiguration(
-                        executor = "frontseat:run-command",
-                        options = mapOf("command" to "python -m pytest"),
-                        dependsOn = listOf("install")
-                    ))
-                }
-                ProjectNature.DOCKER -> {
-                    targets.putIfAbsent("build", TargetConfiguration(
-                        executor = "frontseat:run-command",
-                        options = mapOf("command" to "docker build -t ${component.metadata.name} ."),
-                        dependsOn = emptyList()
-                    ))
-                }
-                ProjectNature.SPRING_BOOT -> {
-                    // Spring Boot specific targets (in addition to Maven/Gradle)
-                    targets.putIfAbsent("run", TargetConfiguration(
-                        executor = "frontseat:spring-boot",
-                        options = mapOf("goal" to "run"),
-                        dependsOn = listOf("build")
-                    ))
-                }
-                else -> {
-                    // Custom or unknown nature
-                    logger.debug("No default targets for nature: $nature")
-                }
+            try {
+                // TODO: Need to implement NatureContext
+                // val context = createNatureContext(projectPath, natures)
+                // val natureTasks = nature.createTasks(projectPath, context)
+                // natureTasks.forEach { (name, definition) ->
+                //     targets[name] = definition.configuration
+                // }
+                logger.debug("Task generation for nature ${nature.id} not yet implemented")
+            } catch (e: Exception) {
+                logger.error("Failed to generate tasks from nature ${nature.id}", e)
             }
         }
         
@@ -344,6 +269,7 @@ class BackstageProjectDiscoverer {
         
         return targets
     }
+    
     
     /**
      * Process a System entity

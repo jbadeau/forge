@@ -35,7 +35,7 @@ class ProjectInferenceEngine(private val natureRegistry: NatureRegistry = Nature
         val allTargets = mutableMapOf<String, NatureTargetDefinition>()
         resolvedNatures.forEach { nature ->
             try {
-                val natureTargets = nature.createTargets(projectPath, context)
+                val natureTargets = nature.createTasks(projectPath, context)
                 allTargets.putAll(natureTargets)
                 logger.debug("Nature ${nature.id} contributed ${natureTargets.size} targets")
             } catch (e: Exception) {

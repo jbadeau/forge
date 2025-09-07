@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: user-service
+  description: User management service
+spec:
+  type: service
+  lifecycle: production
+  owner: backend-team
+  system: user-management
+  dependsOn:
+    - component:auth-service
+    - component:data-lib
+  consumesApis:
+    - notification-api
