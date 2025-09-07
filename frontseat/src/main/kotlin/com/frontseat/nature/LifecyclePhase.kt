@@ -43,8 +43,8 @@ enum class ReleaseLifecyclePhase(val order: Int) {
     UPLOAD(8),           // upload distribution artifacts and files
     RELEASE(9),          // create release in remote Git repository (GitHub/GitLab)
     PREPARE(10),         // generate files for packagers (Homebrew formula, etc.)
-    BUNDLE(11),          // process prepared files into specific packages
-    PUBLISH(12),         // publish packages to registries (Maven Central, Docker Hub, etc.)
+    BUNDLE(11),          // process prepared files into specific bundles
+    PUBLISH(12),         // publish bundle to registries (Maven Central, Docker Hub, etc.)
     ANNOUNCE(13)         // announce release to various channels (Twitter, Slack, etc.)
 }
 

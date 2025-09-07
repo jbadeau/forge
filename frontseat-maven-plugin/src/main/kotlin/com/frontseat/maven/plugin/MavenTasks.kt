@@ -4,80 +4,80 @@ import java.nio.file.Path
 import kotlin.io.path.*
 
 /**
- * Utilities for generating Maven-based targets
+ * Utilities for generating Maven-based tasks
  */
-object MavenTargets {
+object MavenTasks {
     
     /**
-     * Generate standard Maven targets for a project
+     * Generate standard Maven tasks for a project
      */
-    fun generateMavenTargets(projectPath: Path): Map<String, Map<String, Any>> {
-        val targets = mutableMapOf<String, Map<String, Any>>()
+    fun generateMavenTasks(projectPath: Path): Map<String, Map<String, Any>> {
+        val tasks = mutableMapOf<String, Map<String, Any>>()
         
         if (!MavenUtils.isMavenProject(projectPath)) {
-            return targets
+            return tasks
         }
         
-        // Standard Maven lifecycle targets
-        targets["build"] = createMavenTarget("compile", projectPath)
-        targets["test"] = createMavenTarget("test", projectPath) 
-        targets["package"] = createMavenTarget("package", projectPath)
-        targets["install"] = createMavenTarget("install", projectPath)
-        targets["clean"] = createMavenTarget("clean", projectPath)
-        targets["verify"] = createMavenTarget("verify", projectPath)
+        // Standard Maven lifecycle tasks
+        tasks["build"] = createMavenTask("compile", projectPath)
+        tasks["test"] = createMavenTask("test", projectPath) 
+        tasks["package"] = createMavenTask("package", projectPath)
+        tasks["install"] = createMavenTask("install", projectPath)
+        tasks["clean"] = createMavenTask("clean", projectPath)
+        tasks["verify"] = createMavenTask("verify", projectPath)
         
-        // Additional Maven targets based on POM analysis
+        // Additional Maven tasks based on POM analysis
         val pomContent = getPomContent(projectPath)
         if (pomContent != null) {
-            // Add site target if maven-site-plugin is present
+            // Add site task if maven-site-plugin is present
             if (pomContent.contains("maven-site-plugin")) {
-                targets["site"] = createMavenTarget("site", projectPath)
+                tasks["site"] = createMavenTask("site", projectPath)
             }
             
-            // Add deploy target if distributionManagement is configured
+            // Add deploy task if distributionManagement is configured
             if (pomContent.contains("<distributionManagement>")) {
-                targets["deploy"] = createMavenTarget("deploy", projectPath)
+                tasks["deploy"] = createMavenTask("deploy", projectPath)
             }
             
-            // Add integration test target if failsafe plugin is present
+            // Add integration test task if failsafe plugin is present
             if (pomContent.contains("maven-failsafe-plugin")) {
-                targets["integration-test"] = createMavenTarget("integration-test", projectPath)
+                tasks["integration-test"] = createMavenTask("integration-test", projectPath)
             }
         }
         
-        return targets
+        return tasks
     }
     
     /**
-     * Create a specific Maven target configuration
+     * Create a specific Maven task configuration
      */
-    fun createMavenTarget(goal: String, projectPath: Path, options: Map<String, Any> = emptyMap()): Map<String, Any> {
-        val targetOptions = mutableMapOf<String, Any>()
-        targetOptions["command"] = goal
-        targetOptions.putAll(options)
+    fun createMavenTask(goal: String, projectPath: Path, options: Map<String, Any> = emptyMap()): Map<String, Any> {
+        val taskOptions = mutableMapOf<String, Any>()
+        taskOptions["command"] = goal
+        taskOptions.putAll(options)
         
         return mapOf(
             "executor" to "maven",
-            "options" to targetOptions
+            "options" to taskOptions
         )
     }
     
     /**
-     * Create a Maven target with custom goals and options
+     * Create a Maven task with custom goals and options
      */
-    fun createCustomMavenTarget(
+    fun createCustomMavenTask(
         goals: String, 
         projectPath: Path, 
         options: Map<String, Any> = emptyMap()
     ): Map<String, Any> {
-        return createMavenTarget(goals, projectPath, options)
+        return createMavenTask(goals, projectPath, options)
     }
     
     /**
-     * Get Maven target dependencies (which targets should run before this one)
+     * Get Maven task dependencies (which tasks should run before this one)
      */
-    fun getMavenTargetDependencies(targetName: String): List<String> {
-        return when (targetName) {
+    fun getMavenTaskDependencies(taskName: String): List<String> {
+        return when (taskName) {
             "test" -> listOf("build")
             "package" -> listOf("build", "test")
             "install" -> listOf("package")

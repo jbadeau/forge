@@ -48,7 +48,7 @@ object SpringBootInference {
         val projectType = SpringBootUtils.inferProjectType(path)
         val projectCategory = inferSpringBootProjectType(path)
         val springBootVersion = SpringBootUtils.getSpringBootVersion(path)
-        val targets = SpringBootTargets.generateTargets(path)
+        val targets = SpringBootTasks.generateTasks(path)
         
         return SpringBootProjectInfo(
             name = projectName,
@@ -262,7 +262,7 @@ object SpringBootInference {
             metadata["mainClass"] = mainClass
         }
         
-        val serverPort = SpringBootTargets.getTargetMetadata("serve", path)["port"]
+        val serverPort = SpringBootTasks.getTaskMetadata("serve", path)["port"]
         if (serverPort != null) {
             metadata["serverPort"] = serverPort
         }

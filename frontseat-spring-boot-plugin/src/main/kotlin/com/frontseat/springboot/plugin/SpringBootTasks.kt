@@ -1,43 +1,43 @@
 package com.frontseat.springboot.plugin
 
-import com.frontseat.maven.plugin.MavenTargets
+import com.frontseat.maven.plugin.MavenTasks
 import com.frontseat.maven.plugin.MavenUtils
 import java.nio.file.Path
 import kotlin.io.path.*
 
 /**
- * Utilities for defining Spring Boot project targets
+ * Utilities for defining Spring Boot project tasks
  */
-object SpringBootTargets {
+object SpringBootTasks {
     
     /**
-     * Generate standard Spring Boot targets for a project
+     * Generate standard Spring Boot tasks for a project
      */
-    fun generateTargets(projectPath: Path): Map<String, Map<String, Any>> {
+    fun generateTasks(projectPath: Path): Map<String, Map<String, Any>> {
         val category = SpringBootInference.inferSpringBootProjectType(projectPath)
-        return generateTargetsForCategory(projectPath, category)
+        return generateTasksForCategory(projectPath, category)
     }
     
     /**
-     * Generate targets based on Spring Boot project category
+     * Generate tasks based on Spring Boot project category
      */
-    fun generateTargetsForCategory(projectPath: Path, category: SpringBootProjectCategory): Map<String, Map<String, Any>> {
-        val targets = mutableMapOf<String, Map<String, Any>>()
+    fun generateTasksForCategory(projectPath: Path, category: SpringBootProjectCategory): Map<String, Map<String, Any>> {
+        val tasks = mutableMapOf<String, Map<String, Any>>()
         
-        // Use Maven plugin to generate base Maven targets if pom.xml exists
+        // Use Maven plugin to generate base Maven tasks if pom.xml exists
         if (MavenUtils.isMavenProject(projectPath)) {
-            // Get standard Maven targets from the Maven plugin
-            val mavenTargets = MavenTargets.generateMavenTargets(projectPath)
-            targets.putAll(mavenTargets)
+            // Get standard Maven tasks from the Maven plugin
+            val mavenTasks = MavenTasks.generateMavenTasks(projectPath)
+            tasks.putAll(mavenTasks)
         } else {
             // Fallback for non-Maven Spring Boot projects (Gradle, etc.)
-            targets["build"] = mapOf(
+            tasks["build"] = mapOf(
                 "executor" to "generic",
                 "options" to mapOf(
                     "command" to "./gradlew build"
                 )
             )
-            targets["test"] = mapOf(
+            tasks["test"] = mapOf(
                 "executor" to "generic",
                 "options" to mapOf(
                     "command" to "./gradlew test"
@@ -45,31 +45,31 @@ object SpringBootTargets {
             )
         }
         
-        // Add Spring Boot specific targets
-        addSpringBootSpecificTargets(targets, projectPath, category)
+        // Add Spring Boot specific tasks
+        addSpringBootSpecificTasks(tasks, projectPath, category)
         
         
-        // Add Docker targets if applicable
-        addDockerTargets(targets, projectPath)
+        // Add Docker tasks if applicable
+        addDockerTasks(tasks, projectPath)
         
-        return targets
+        return tasks
     }
     
     /**
-     * Add Spring Boot specific targets to the target map
+     * Add Spring Boot specific tasks to the task map
      */
-    private fun addSpringBootSpecificTargets(
-        targets: MutableMap<String, Map<String, Any>>,
+    private fun addSpringBootSpecificTasks(
+        tasks: MutableMap<String, Map<String, Any>>,
         projectPath: Path,
         category: SpringBootProjectCategory
     ) {
-        // Serve target (only for applications)
+        // Serve task (only for applications)
         if (category == SpringBootProjectCategory.APPLICATION) {
             if (MavenUtils.isMavenProject(projectPath)) {
-                targets["serve"] = MavenTargets.createMavenTarget("spring-boot:run", projectPath)
+                tasks["serve"] = MavenTasks.createMavenTask("spring-boot:run", projectPath)
             } else {
                 // Gradle fallback
-                targets["serve"] = mapOf(
+                tasks["serve"] = mapOf(
                     "executor" to "generic",
                     "options" to mapOf(
                         "command" to "./gradlew bootRun"
@@ -78,45 +78,45 @@ object SpringBootTargets {
             }
         }
         
-        // Additional targets based on project type
+        // Additional tasks based on project type
         val projectType = SpringBootUtils.inferProjectType(projectPath)
         
         when (projectType) {
             SpringBootProjectType.WEB, SpringBootProjectType.REACTIVE_WEB -> {
-                // Integration test target for web applications (if not already added by Maven plugin)
-                if (!targets.containsKey("integration-test")) {
+                // Integration test task for web applications (if not already added by Maven plugin)
+                if (!tasks.containsKey("integration-test")) {
                     if (MavenUtils.isMavenProject(projectPath)) {
-                        targets["integration-test"] = MavenTargets.createMavenTarget("verify", projectPath)
+                        tasks["integration-test"] = MavenTasks.createMavenTask("verify", projectPath)
                     }
                 }
             }
             SpringBootProjectType.DATA -> {
-                // Database migration target
+                // Database migration task
                 if (MavenUtils.isMavenProject(projectPath)) {
                     // Only add if Flyway plugin is present
-                    if (MavenTargets.hasPlugin(projectPath, "flyway-maven-plugin")) {
-                        targets["migrate"] = MavenTargets.createMavenTarget("flyway:migrate", projectPath)
-                        targets["migrate-info"] = MavenTargets.createMavenTarget("flyway:info", projectPath)
+                    if (MavenTasks.hasPlugin(projectPath, "flyway-maven-plugin")) {
+                        tasks["migrate"] = MavenTasks.createMavenTask("flyway:migrate", projectPath)
+                        tasks["migrate-info"] = MavenTasks.createMavenTask("flyway:info", projectPath)
                     }
                 }
             }
             else -> {
-                // No additional targets for basic projects
+                // No additional tasks for basic projects
             }
         }
     }
     
     /**
-     * Add Docker targets if Dockerfile exists
+     * Add Docker tasks if Dockerfile exists
      */
-    private fun addDockerTargets(
-        targets: MutableMap<String, Map<String, Any>>,
+    private fun addDockerTasks(
+        tasks: MutableMap<String, Map<String, Any>>,
         projectPath: Path
     ) {
         if ((projectPath / "Dockerfile").exists()) {
             val projectName = projectPath.fileName.toString()
             
-            targets["docker-build"] = mapOf(
+            tasks["docker-build"] = mapOf(
                 "executor" to "docker",
                 "options" to mapOf(
                     "command" to "build",
@@ -126,7 +126,7 @@ object SpringBootTargets {
                 )
             )
             
-            targets["docker-run"] = mapOf(
+            tasks["docker-run"] = mapOf(
                 "executor" to "docker",
                 "options" to mapOf(
                     "command" to "run", 
@@ -139,17 +139,17 @@ object SpringBootTargets {
     }
     
     /**
-     * Get dependencies for Spring Boot targets
+     * Get dependencies for Spring Boot tasks
      */
-    fun getTargetDependencies(targetName: String): List<String> {
+    fun getTaskDependencies(taskName: String): List<String> {
         // First check Maven plugin dependencies
-        val mavenDependencies = MavenTargets.getMavenTargetDependencies(targetName)
+        val mavenDependencies = MavenTasks.getMavenTaskDependencies(taskName)
         if (mavenDependencies.isNotEmpty()) {
             return mavenDependencies
         }
         
         // Spring Boot specific dependencies
-        return when (targetName) {
+        return when (taskName) {
             "serve" -> listOf("build") // Applications need to be compiled first
             "docker-build" -> listOf("package")
             "docker-run" -> listOf("docker-build")
@@ -160,12 +160,12 @@ object SpringBootTargets {
     }
     
     /**
-     * Get target metadata for Spring Boot projects
+     * Get task metadata for Spring Boot projects
      */
-    fun getTargetMetadata(targetName: String, projectPath: Path): Map<String, Any> {
+    fun getTaskMetadata(taskName: String, projectPath: Path): Map<String, Any> {
         val metadata = mutableMapOf<String, Any>()
         
-        when (targetName) {
+        when (taskName) {
             "serve" -> {
                 metadata["port"] = getServerPort(projectPath)
                 metadata["url"] = "http://localhost:${getServerPort(projectPath)}"
