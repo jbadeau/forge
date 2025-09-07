@@ -5,23 +5,20 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.forge</groupId>
-    <artifactId>forge-parent</artifactId>
+    <groupId>com.frontseat</groupId>
+    <artifactId>frontseat-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Forge Parent</name>
+    <name>Frontseat Parent</name>
     <description>A Kotlin-based build tool inspired by Nx with project and task graph capabilities</description>
 
     <modules>
-        <module>forge</module>
-        <module>forge-maven-plugin</module>
-        <module>forge-gradle-plugin</module>
-        <module>forge-spring-boot-plugin</module>
-        <module>forge-local-executor</module>
-        <module>forge-remote-executor</module>
-        <module>forge-cli</module>
-        <module>forge-client</module>
+        <module>frontseat</module>
+        <module>frontseat-maven-plugin</module>
+        <module>frontseat-spring-boot-plugin</module>
+        <module>frontseat-cli</module>
+        <module>frontseat-client</module>
     </modules>
 
     <properties>
