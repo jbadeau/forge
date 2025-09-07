@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: frontseat-cli
+  description: Command-line interface for Frontseat build tool
+  annotations:
+    backstage.io/source-location: url:https://github.com/example/frontseat-cli
+  tags:
+    - cli
+    - kotlin
+    - graalvm
+spec:
+  type: cli-tool
+  lifecycle: production
+  owner: platform-team
+  system: frontseat-system
+  dependsOn:
+    - component:frontseat-core

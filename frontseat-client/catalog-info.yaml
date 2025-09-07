@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: frontseat-client
+  description: Lightweight native client for Frontseat daemon
+  annotations:
+    backstage.io/source-location: url:https://github.com/example/frontseat-client
+  tags:
+    - client
+    - kotlin
+    - graalvm
+    - native
+spec:
+  type: cli-tool
+  lifecycle: production
+  owner: platform-team
+  system: frontseat-system
+  providesApis:
+    - frontseat-daemon-api

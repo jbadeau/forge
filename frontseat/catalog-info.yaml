@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: frontseat-core
+  description: Core functionality for Frontseat build tool with Backstage integration
+  annotations:
+    backstage.io/source-location: url:https://github.com/example/frontseat
+  tags:
+    - build-tool
+    - kotlin
+    - backend
+  links:
+    - url: https://github.com/example/frontseat
+      title: GitHub Repository
+      icon: github
+spec:
+  type: service
+  lifecycle: production
+  owner: platform-team
+  system: frontseat-system
+  dependsOn:
+    - resource:database

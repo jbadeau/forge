@@ -1,5 +1,6 @@
 package com.frontseat.project
 
+import com.frontseat.backstage.BackstageProjectDiscoverer
 import com.frontseat.plugin.api.ProjectConfiguration
 import com.frontseat.plugin.PluginManager
 import com.frontseat.plugin.ProjectPlugin
@@ -15,12 +16,16 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.pathString
 
 /**
- * Discovers projects in the workspace using FrontseatPlugins
+ * Discovers projects in the workspace using either:
+ * 1. Backstage catalog-info.yaml files (preferred)
+ * 2. Traditional FrontseatPlugins (fallback for legacy support)
  */
 class ProjectDiscoverer(
-    private val pluginManager: PluginManager = PluginManager()
+    private val pluginManager: PluginManager = PluginManager(),
+    private val useBackstageCatalog: Boolean = true
 ) {
     private val logger = LoggerFactory.getLogger(ProjectDiscoverer::class.java)
+    private val backstageDiscoverer = BackstageProjectDiscoverer()
     
     /**
      * Discover projects across all FrontseatPlugins for the given workspace
@@ -29,6 +34,18 @@ class ProjectDiscoverer(
         workspaceRoot: Path,
         nxJsonConfiguration: Map<String, Any> = emptyMap()
     ): InferenceResult {
+        // Try Backstage catalog discovery first if enabled
+        if (useBackstageCatalog) {
+            logger.info("Attempting Backstage catalog-based project discovery")
+            val backstageResult = backstageDiscoverer.discoverProjects(workspaceRoot)
+            
+            if (backstageResult.projects.isNotEmpty()) {
+                logger.info("Found ${backstageResult.projects.size} projects using Backstage catalog")
+                return backstageResult
+            } else {
+                logger.info("No Backstage catalog files found, falling back to plugin-based discovery")
+            }
+        }
         val context = CreateNodesContext(
             workspaceRoot = workspaceRoot,
             nxJsonConfiguration = nxJsonConfiguration
