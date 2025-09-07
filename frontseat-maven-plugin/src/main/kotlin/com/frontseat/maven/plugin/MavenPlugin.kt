@@ -7,7 +7,7 @@ import com.frontseat.workspace.Workspace
 /**
  * Maven plugin that contributes the Maven nature
  */
-class MavenProjectPlugin : FrontseatPlugin {
+class MavenPlugin : FrontseatPlugin {
     
     override val id = "maven"
     override val name = "Maven Plugin"

@@ -1,7 +1,6 @@
 package com.frontseat.nature
 
 import org.slf4j.LoggerFactory
-import java.util.*
 
 /**
  * Registry for managing available project natures
@@ -10,9 +9,6 @@ class NatureRegistry {
     private val logger = LoggerFactory.getLogger(NatureRegistry::class.java)
     private val natures = mutableMapOf<String, ProjectNature>()
     
-    init {
-        loadNatures()
-    }
     
     /**
      * Register a nature
@@ -87,15 +83,6 @@ class NatureRegistry {
         return resolved
     }
     
-    private fun loadNatures() {
-        // Use service loader to discover natures
-        val serviceLoader = ServiceLoader.load(ProjectNature::class.java)
-        serviceLoader.forEach { nature ->
-            register(nature)
-        }
-        
-        logger.info("Loaded ${natures.size} natures")
-    }
     
     companion object {
         @JvmStatic

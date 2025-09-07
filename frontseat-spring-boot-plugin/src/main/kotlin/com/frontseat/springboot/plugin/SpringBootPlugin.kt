@@ -7,7 +7,7 @@ import com.frontseat.workspace.Workspace
 /**
  * Spring Boot plugin that contributes the Spring Boot nature
  */
-class SpringBootProjectPlugin : FrontseatPlugin {
+class SpringBootPlugin : FrontseatPlugin {
     
     override val id = "spring-boot"
     override val name = "Spring Boot Plugin"
