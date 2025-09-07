@@ -1,5 +1,7 @@
 package com.frontseat.springboot.plugin
 
+import com.frontseat.annotation.AutoRegister
+import com.frontseat.annotation.Nature
 import com.frontseat.maven.plugin.MavenCommandBuilder
 import com.frontseat.nature.*
 import com.frontseat.command.CommandTask
@@ -10,14 +12,12 @@ import java.nio.file.Path
 /**
  * Spring Boot project nature that provides Spring Boot specific capabilities
  */
+@Nature(id = "spring-boot", layer = NatureLayers.FRAMEWORKS)
+@AutoRegister
 class SpringBootNature : ProjectNature {
     private val logger = LoggerFactory.getLogger(SpringBootNature::class.java)
     
-    override val id = "spring-boot"
-    override val name = "Spring Boot"
-    override val version = "1.0.0"
-    override val description = "Spring Boot application framework support"
-    override val layer = NatureLayers.FRAMEWORKS
+    // No need to override id or layer - they come from @Nature annotation!
     
     override fun isApplicable(projectPath: Path, context: NatureContext?): Boolean {
         return SpringBootUtils.isSpringBootProject(projectPath)

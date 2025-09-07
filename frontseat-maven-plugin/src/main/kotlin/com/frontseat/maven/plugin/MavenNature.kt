@@ -1,5 +1,7 @@
 package com.frontseat.maven.plugin
 
+import com.frontseat.annotation.AutoRegister
+import com.frontseat.annotation.Nature
 import com.frontseat.nature.*
 import com.frontseat.command.CommandTask
 import com.frontseat.command.commandTask
@@ -8,13 +10,10 @@ import java.nio.file.Path
 /**
  * Maven project nature that provides Maven build system capabilities
  */
+@Nature(id = "maven", layer = NatureLayers.BUILD_SYSTEMS)
+@AutoRegister
 class MavenNature : ProjectNature {
-    
-    override val id = "maven"
-    override val name = "Maven"
-    override val version = "1.0.0"
-    override val description = "Maven build system support"
-    override val layer = NatureLayers.BUILD_SYSTEMS
+    // No need to override id or layer - they come from @Nature annotation!
     
     override fun isApplicable(projectPath: Path, context: NatureContext?): Boolean {
         return MavenUtils.isMavenProject(projectPath)

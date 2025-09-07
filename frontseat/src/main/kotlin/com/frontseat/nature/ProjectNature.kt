@@ -1,7 +1,9 @@
 package com.frontseat.nature
 
+import com.frontseat.annotation.Nature
 import com.frontseat.command.CommandTask
 import java.nio.file.Path
+import kotlin.reflect.full.findAnnotation
 
 /**
  * A project nature represents a specific technology, framework, or capability
@@ -11,26 +13,34 @@ import java.nio.file.Path
 interface ProjectNature {
     /**
      * Unique identifier for this nature
+     * Gets value from @Nature annotation if present, otherwise must override
      */
     val id: String
+        get() = this::class.findAnnotation<Nature>()?.id
+            ?: error("Nature ${this::class.simpleName} must have @Nature annotation or override id")
     
     /**
      * Human-readable name for this nature
+     * Defaults to id if not overridden
      */
     val name: String
+        get() = id
     
     /**
      * Version of this nature
      */
     val version: String
+        get() = "1.0.0"
     
     /**
      * Description of what this nature provides
      */
     val description: String
+        get() = ""
     
     /**
      * Layer number for this nature - lower layers are applied first
+     * Gets value from @Nature annotation if present, otherwise must override
      * Standard layers:
      * 0 = Build Systems (Maven, Gradle, Cargo, npm, etc.)
      * 1 = Languages (Java, Kotlin, JavaScript, TypeScript, Rust, Go, etc.)
@@ -42,6 +52,8 @@ interface ProjectNature {
      * 7 = Deployment/Distribution (Jib, Docker Build, NPM Publish, etc.)
      */
     val layer: Int
+        get() = this::class.findAnnotation<Nature>()?.layer
+            ?: error("Nature ${this::class.simpleName} must have @Nature annotation or override layer")
     
     
     /**

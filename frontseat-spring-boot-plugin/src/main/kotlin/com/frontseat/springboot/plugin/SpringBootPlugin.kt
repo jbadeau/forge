@@ -1,25 +1,14 @@
 package com.frontseat.springboot.plugin
 
-import com.frontseat.nature.NatureRegistry
+import com.frontseat.annotation.Plugin
 import com.frontseat.plugin.FrontseatPlugin
 import com.frontseat.workspace.Workspace
 
 /**
  * Spring Boot plugin that contributes the Spring Boot nature
  */
+@Plugin(id = "spring-boot", name = "Spring Boot Plugin")
 class SpringBootPlugin : FrontseatPlugin {
-    
-    override val id = "spring-boot"
-    override val name = "Spring Boot Plugin"
-    override val version = "1.0.0"
-    
-    override fun initialize(workspace: Workspace) {
-        // Register Spring Boot nature with the nature registry
-        val natureRegistry = workspace.getNatureRegistry()
-        natureRegistry.register(SpringBootNature())
-    }
-    
-    override fun shutdown() {
-        // Cleanup if needed
-    }
+    // No need to override id, name, or version anymore!
+    // No need for manual registration if SpringBootNature has @AutoRegister
 }
