@@ -20,7 +20,7 @@ class SpringBootNature : ProjectNature {
         return SpringBootInference.isSpringBootProject(projectPath.toString())
     }
     
-    override fun createTargets(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition> {
+    override fun createTasks(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition> {
         val targets = mutableMapOf<String, NatureTargetDefinition>()
         
         // Only add serve target for Spring Boot applications (not libraries)

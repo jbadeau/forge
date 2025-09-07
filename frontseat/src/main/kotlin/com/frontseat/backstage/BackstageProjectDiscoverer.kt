@@ -19,8 +19,7 @@ import kotlin.streams.toList
 class BackstageProjectDiscoverer {
     private val logger = LoggerFactory.getLogger(BackstageProjectDiscoverer::class.java)
     private val catalogParser = CatalogParser()
-    private val natureInference = NatureInferenceService()
-    private val dependencyInference = DependencyInferenceService()
+    private val projectInferenceEngine = com.frontseat.nature.ProjectInferenceEngine()
     
     companion object {
         const val CATALOG_FILE_NAME = "catalog-info.yaml"
@@ -158,45 +157,44 @@ class BackstageProjectDiscoverer {
         
         logger.info("Processing component: $projectName at $relativePath")
         
-        // Infer project natures from files in the project directory + entity type
-        val inferredNatures = natureInference.inferNatures(projectRoot, component.spec.type)
+        // Use the project inference engine to get natures and targets
+        val inferredProject = projectInferenceEngine.inferProject(projectRoot)
         
-        // Apply manual overrides from annotations if present
-        val natures = natureInference.applyManualOverrides(inferredNatures, component.metadata.annotations)
-        
-        logger.debug("Inferred natures for $projectName: $inferredNatures")
-        if (inferredNatures != natures) {
-            logger.info("Applied manual nature override for $projectName: $natures")
-        }
-        
-        // Generate targets based on natures only
-        val targets = generateTargets(component, natures)
-        
-        // Infer dependencies from build files based on natures
-        val inferredDependencies = dependencyInference.inferDependencies(projectRoot, projectName, natures)
-        
-        // Start with inferred dependencies (natures are primary source of truth)
-        val allBackstageDependencies = mutableSetOf<String>().apply {
-            addAll(inferredDependencies)
-        }
-        
-        // Add explicit Backstage dependencies only if they can't be inferred
-        val explicitDeps = component.spec.dependsOn + component.spec.consumesApis + component.spec.providesApis
-        explicitDeps.forEach { dep ->
-            if (!allBackstageDependencies.contains(dep)) {
-                allBackstageDependencies.add(dep)
-                logger.debug("Added explicit dependency '$dep' for $projectName (not inferred from build tools)")
+        val (natures, targets) = if (inferredProject != null) {
+            logger.debug("Inferred project: ${inferredProject.natures}, targets: ${inferredProject.targets.keys}")
+            
+            // Apply manual nature overrides from annotations if present
+            val natures = applyManualNatureOverrides(inferredProject.natures, component.metadata.annotations)
+            val targets = if (natures != inferredProject.natures) {
+                // Re-infer with overridden natures
+                // TODO: Need to re-run inference with overridden natures
+                inferredProject.targets
+            } else {
+                inferredProject.targets
             }
+            
+            Pair(natures, targets)
+        } else {
+            logger.debug("No natures inferred for $projectName")
+            Pair(emptySet<String>(), emptyMap<String, TargetConfiguration>())
         }
         
-        logger.debug("Dependencies for $projectName: inferred=${inferredDependencies.size}, explicit=${explicitDeps.size}, total=${allBackstageDependencies.size}")
+        // For now, use explicit Backstage dependencies
+        // TODO: Integrate dependency inference from ProjectInferenceEngine
+        val allBackstageDependencies = mutableSetOf<String>().apply {
+            addAll(component.spec.dependsOn)
+            addAll(component.spec.consumesApis)
+            addAll(component.spec.providesApis)
+        }
+        
+        logger.debug("Dependencies for $projectName: ${allBackstageDependencies.size} explicit")
         
         // Extract tags from metadata
         val tags = mutableSetOf<String>().apply {
             addAll(component.metadata.tags)
             add("type:${component.spec.type}")
             add("lifecycle:${component.spec.lifecycle}")
-            natures.forEach { add("nature:${it.name.lowercase()}") }
+            natures.forEach { add("nature:$it") }
         }
         
         // Create project configuration
@@ -232,42 +230,20 @@ class BackstageProjectDiscoverer {
     }
     
     /**
-     * Generate targets based on project natures only
-     * Tasks are generated in-memory from the presence of natures
+     * Apply manual nature overrides from Backstage annotations
      */
-    private fun generateTargets(
-        component: Component,
-        natures: Set<ProjectNature>
-    ): Map<String, TargetConfiguration> {
-        val targets = mutableMapOf<String, TargetConfiguration>()
+    private fun applyManualNatureOverrides(
+        inferredNatures: Set<String>,
+        annotations: Map<String, String>
+    ): Set<String> {
+        val manualNatures = annotations[BackstageAnnotations.FRONTSEAT_NATURES]
         
-        // Ask each nature to create its tasks
-        natures.forEach { nature ->
-            try {
-                // TODO: Need to implement NatureContext
-                // val context = createNatureContext(projectPath, natures)
-                // val natureTasks = nature.createTasks(projectPath, context)
-                // natureTasks.forEach { (name, definition) ->
-                //     targets[name] = definition.configuration
-                // }
-                logger.debug("Task generation for nature ${nature.id} not yet implemented")
-            } catch (e: Exception) {
-                logger.error("Failed to generate tasks from nature ${nature.id}", e)
-            }
+        return if (manualNatures != null) {
+            logger.info("Applying manual nature override: $manualNatures")
+            manualNatures.split(",").map { it.trim() }.toSet()
+        } else {
+            inferredNatures
         }
-        
-        // If no targets were generated, add a default build target
-        if (targets.isEmpty()) {
-            targets["build"] = TargetConfiguration(
-                executor = "frontseat:run-command",
-                options = mapOf(
-                    "command" to "echo 'No specific build tools detected in project'"
-                ),
-                dependsOn = emptyList()
-            )
-        }
-        
-        return targets
     }
     
     

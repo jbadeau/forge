@@ -1,5 +1,6 @@
 package com.frontseat.maven.plugin
 
+import com.frontseat.nature.NatureRegistry
 import com.frontseat.plugin.FrontseatPlugin
 import com.frontseat.plugin.ProjectPlugin
 import com.frontseat.project.Project
@@ -7,7 +8,7 @@ import com.frontseat.workspace.Workspace
 import java.nio.file.Path
 
 /**
- * Maven project plugin that provides both nature and project facilities
+ * Maven project plugin that contributes the Maven nature
  */
 class MavenProjectPlugin : FrontseatPlugin, ProjectPlugin {
     
@@ -16,17 +17,15 @@ class MavenProjectPlugin : FrontseatPlugin, ProjectPlugin {
     override val version = "1.0.0"
     
     override fun initialize(workspace: Workspace) {
-        // Register Maven nature
-        // Nature registration will be handled by service loader
+        // Register Maven nature with the nature registry
+        val natureRegistry = NatureRegistry.instance
+        natureRegistry.register(MavenNature())
     }
     
     override fun discover(workspace: Workspace, projectPath: Path): Project? {
-        if (!MavenUtils.isMavenProject(projectPath)) {
-            return null
-        }
-        
-        val inference = MavenProjectInference()
-        return inference.inferProject(workspace, projectPath)
+        // Project discovery is handled by the nature-based ProjectInferenceEngine
+        // This plugin just contributes the Maven nature capability
+        return null
     }
     
     override fun shutdown() {
