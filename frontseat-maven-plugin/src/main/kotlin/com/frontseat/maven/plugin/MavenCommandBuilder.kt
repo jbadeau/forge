@@ -1,6 +1,8 @@
 package com.frontseat.maven.plugin
 
 import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.div
 
 /**
  * Builder for constructing Maven commands
@@ -90,13 +92,29 @@ class MavenCommandBuilder private constructor() {
     }
     
     /**
+     * Get the Maven command (wrapper or regular mvn)
+     */
+    private fun getMavenCommand(): String {
+        if (projectDir != null) {
+            val isWindows = System.getProperty("os.name").lowercase().contains("windows")
+            val wrapperScript = if (isWindows) "mvnw.bat" else "mvnw"
+            val wrapperPath = projectDir!! / wrapperScript
+            
+            if (wrapperPath.exists()) {
+                return wrapperPath.toString()
+            }
+        }
+        return "mvn"
+    }
+    
+    /**
      * Convert to executor options map
      */
     fun toOptions(): Map<String, Any> {
         val command = mutableListOf<String>()
         
         // Add executable
-        val executable = projectDir?.let { MavenUtils.getMavenCommand(it) } ?: "mvn"
+        val executable = getMavenCommand()
         command.add(executable)
         
         // Add phases and goals
