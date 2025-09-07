@@ -21,10 +21,10 @@ class MavenNature : ProjectNature {
     }
     
     override fun createTasks(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition> {
-        val targets = mutableMapOf<String, NatureTargetDefinition>()
+        val tasks = mutableMapOf<String, NatureTargetDefinition>()
         
-        // Build lifecycle targets - using official lifecycle phase names
-        targets["validate"] = NatureTargetDefinition(
+        // Build lifecycle tasks - using official lifecycle phase names
+        tasks["validate"] = NatureTargetDefinition(
             configuration = TargetConfiguration(
                 executor = "maven",
                 options = MavenCommandBuilder.build()
@@ -35,7 +35,7 @@ class MavenNature : ProjectNature {
             lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.VALIDATE)
         )
         
-        targets["initialize"] = NatureTargetDefinition(
+        tasks["initialize"] = NatureTargetDefinition(
             configuration = TargetConfiguration(
                 executor = "maven",
                 options = MavenCommandBuilder.build()
@@ -48,7 +48,7 @@ class MavenNature : ProjectNature {
         
         // Generate phase - skip if no code generation needed
         
-        targets["compile"] = NatureTargetDefinition(
+        tasks["compile"] = NatureTargetDefinition(
             configuration = TargetConfiguration(
                 executor = "maven",
                 options = MavenCommandBuilder.build()
@@ -59,7 +59,7 @@ class MavenNature : ProjectNature {
             lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.COMPILE)
         )
         
-        targets["test"] = NatureTargetDefinition(
+        tasks["test"] = NatureTargetDefinition(
             configuration = TargetConfiguration(
                 executor = "maven",
                 options = MavenCommandBuilder.build()
@@ -70,7 +70,7 @@ class MavenNature : ProjectNature {
             lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.TEST)
         )
         
-        targets["bundle"] = NatureTargetDefinition(
+        tasks["bundle"] = NatureTargetDefinition(
             configuration = TargetConfiguration(
                 executor = "maven",
                 options = MavenCommandBuilder.build()
@@ -81,7 +81,7 @@ class MavenNature : ProjectNature {
             lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.BUNDLE)
         )
         
-        targets["verify"] = NatureTargetDefinition(
+        tasks["verify"] = NatureTargetDefinition(
             configuration = TargetConfiguration(
                 executor = "maven",
                 options = MavenCommandBuilder.build()
@@ -92,8 +92,8 @@ class MavenNature : ProjectNature {
             lifecycle = TargetLifecycle.Build(BuildLifecyclePhase.VERIFY)
         )
         
-        // Release lifecycle targets - using official lifecycle phase names
-        targets["publish"] = NatureTargetDefinition(
+        // Release lifecycle tasks - using official lifecycle phase names
+        tasks["publish"] = NatureTargetDefinition(
             configuration = TargetConfiguration(
                 executor = "maven",
                 options = MavenCommandBuilder.build()
@@ -105,7 +105,7 @@ class MavenNature : ProjectNature {
             cacheable = false
         )
         
-        return targets
+        return tasks
     }
     
     override fun createDependencies(projectPath: Path, context: NatureContext): List<ProjectDependency> {

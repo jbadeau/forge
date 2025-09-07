@@ -18,20 +18,20 @@ class PluginManager(
     /**
      * Load plugins for a workspace using ServiceLoader for built-in plugins
      */
-    fun loadPlugins(workspaceRoot: Path): List<ProjectPlugin> {
+    fun loadPlugins(workspaceRoot: Path): List<FrontseatPlugin> {
         logger.info("Loading plugins for workspace: $workspaceRoot")
         
-        val plugins = mutableListOf<ProjectPlugin>()
+        val plugins = mutableListOf<FrontseatPlugin>()
         
         // Load built-in plugins using ServiceLoader
         try {
-            val serviceLoader = ServiceLoader.load(ProjectPlugin::class.java)
+            val serviceLoader = ServiceLoader.load(FrontseatPlugin::class.java)
             serviceLoader.forEach { plugin ->
                 try {
                     plugins.add(plugin)
-                    logger.info("Loaded built-in plugin: ${plugin.metadata.name} v${plugin.metadata.version}")
+                    logger.info("Loaded built-in plugin: ${plugin.name} v${plugin.version}")
                 } catch (e: Exception) {
-                    logger.error("Failed to load built-in plugin: ${plugin.metadata.id}", e)
+                    logger.error("Failed to load built-in plugin: ${plugin.id}", e)
                 }
             }
         } catch (e: Exception) {
@@ -45,10 +45,10 @@ class PluginManager(
     /**
      * Load plugins from specifications
      */
-    fun loadPlugins(pluginSpecs: List<PluginSpec>): List<ProjectPlugin> {
+    fun loadPlugins(pluginSpecs: List<PluginSpec>): List<FrontseatPlugin> {
         logger.info("Loading ${pluginSpecs.size} specified plugin(s)")
         
-        val plugins = mutableListOf<ProjectPlugin>()
+        val plugins = mutableListOf<FrontseatPlugin>()
         
         pluginSpecs.forEach { spec ->
             try {
@@ -67,7 +67,7 @@ class PluginManager(
     /**
      * Load a specific plugin
      */
-    fun loadPlugin(spec: PluginSpec): ProjectPlugin {
+    fun loadPlugin(spec: PluginSpec): FrontseatPlugin {
         // Check if already loaded
         loadedPlugins[spec.id]?.let { loadedPlugin ->
             if (loadedPlugin.version == spec.version) {
@@ -89,34 +89,24 @@ class PluginManager(
         val plugin = classLoader.loadPlugin()
         
         // Validate plugin metadata
-        if (plugin.metadata.id != spec.id) {
-            logger.warn("Plugin ID mismatch: expected ${spec.id}, got ${plugin.metadata.id}")
+        if (plugin.id != spec.id) {
+            logger.warn("Plugin ID mismatch: expected ${spec.id}, got ${plugin.id}")
         }
         
-        // Validate plugin options
-        val validationResult = plugin.validateOptions(spec.options)
-        if (!validationResult.isValid) {
-            throw PluginConfigurationException("Invalid plugin options for ${spec.id}: ${validationResult.errors}")
-        }
-        
-        // Initialize plugin
-        try {
-            plugin.initialize()
-        } catch (e: Exception) {
-            throw PluginInitializationException("Failed to initialize plugin ${spec.id}", e)
-        }
+        // Initialize plugin (no workspace needed for now)
+        // TODO: Pass workspace context when available
         
         // Store loaded plugin
         val loadedPlugin = LoadedPlugin(
             plugin = plugin,
             spec = spec,
-            version = plugin.metadata.version,
+            version = plugin.version,
             classLoader = classLoader
         )
         loadedPlugins[spec.id] = loadedPlugin
         pluginClassLoaders.add(classLoader)
         
-        logger.info("Successfully loaded plugin: ${plugin.metadata.name} v${plugin.metadata.version}")
+        logger.info("Successfully loaded plugin: ${plugin.name} v${plugin.version}")
         return plugin
     }
     
@@ -129,9 +119,9 @@ class PluginManager(
             logger.info("Unloading plugin: $pluginId")
             
             try {
-                loadedPlugin.plugin.cleanup()
+                loadedPlugin.plugin.shutdown()
             } catch (e: Exception) {
-                logger.error("Error during plugin cleanup: $pluginId", e)
+                logger.error("Error during plugin shutdown: $pluginId", e)
             }
             
             try {
@@ -146,14 +136,14 @@ class PluginManager(
     /**
      * Get all loaded plugins
      */
-    fun getLoadedPlugins(): List<ProjectPlugin> {
+    fun getLoadedPlugins(): List<FrontseatPlugin> {
         return loadedPlugins.values.map { it.plugin }
     }
     
     /**
      * Get plugin by ID
      */
-    fun getPlugin(pluginId: String): ProjectPlugin? {
+    fun getPlugin(pluginId: String): FrontseatPlugin? {
         return loadedPlugins[pluginId]?.plugin
     }
     
@@ -199,7 +189,7 @@ class PluginManager(
  * Represents a loaded plugin with its metadata
  */
 private data class LoadedPlugin(
-    val plugin: ProjectPlugin,
+    val plugin: FrontseatPlugin,
     val spec: PluginSpec,
     val version: String,
     val classLoader: PluginClassLoader

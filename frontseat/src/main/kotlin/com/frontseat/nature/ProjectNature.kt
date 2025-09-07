@@ -111,9 +111,9 @@ interface NatureContext {
     fun hasNature(natureId: String): Boolean
     
     /**
-     * Check if a target with the given name exists
+     * Check if a task with the given name exists
      */
-    fun hasTarget(targetName: String): Boolean
+    fun hasTask(taskName: String): Boolean
     
     /**
      * Get project root path

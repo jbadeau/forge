@@ -31,20 +31,20 @@ class ProjectInferenceEngine(private val natureRegistry: NatureRegistry = Nature
         // Create nature context
         val context = NatureContextImpl(projectPath, resolvedNatures.map { it.id }.toSet())
         
-        // Collect targets from all natures
-        val allTargets = mutableMapOf<String, NatureTargetDefinition>()
+        // Collect tasks from all natures
+        val allTasks = mutableMapOf<String, NatureTargetDefinition>()
         resolvedNatures.forEach { nature ->
             try {
-                val natureTargets = nature.createTasks(projectPath, context)
-                allTargets.putAll(natureTargets)
-                logger.debug("Nature ${nature.id} contributed ${natureTargets.size} targets")
+                val natureTasks = nature.createTasks(projectPath, context)
+                allTasks.putAll(natureTasks)
+                logger.debug("Nature ${nature.id} contributed ${natureTasks.size} tasks")
             } catch (e: Exception) {
-                logger.error("Error creating targets for nature ${nature.id}", e)
+                logger.error("Error creating tasks for nature ${nature.id}", e)
             }
         }
         
-        // Resolve target dependencies based on lifecycle phases
-        val resolvedTargets = resolveTargetDependencies(allTargets)
+        // Resolve task dependencies based on lifecycle phases
+        val resolvedTasks = resolveTaskDependencies(allTasks)
         
         // Infer project name from path
         val projectName = projectPath.fileName?.toString() ?: "unknown"
@@ -53,23 +53,23 @@ class ProjectInferenceEngine(private val natureRegistry: NatureRegistry = Nature
             name = projectName,
             root = projectPath.toString(),
             natures = resolvedNatures.map { it.id }.toSet(),
-            targets = resolvedTargets,
+            tasks = resolvedTasks,
             tags = inferTags(resolvedNatures)
         )
     }
     
     /**
-     * Resolve target dependencies based on lifecycle phase ordering
+     * Resolve task dependencies based on lifecycle phase ordering
      */
-    private fun resolveTargetDependencies(targets: Map<String, NatureTargetDefinition>): Map<String, TargetConfiguration> {
-        return targets.mapValues { (targetName, targetDef) ->
-            val dependencies = when (val lifecycle = targetDef.lifecycle) {
+    private fun resolveTaskDependencies(tasks: Map<String, NatureTargetDefinition>): Map<String, TargetConfiguration> {
+        return tasks.mapValues { (taskName, taskDef) ->
+            val dependencies = when (val lifecycle = taskDef.lifecycle) {
                 is TargetLifecycle.Build -> {
-                    // Find all targets in earlier build phases
-                    targets.filter { (otherName, otherTarget) ->
-                        otherName != targetName &&
-                        otherTarget.lifecycle is TargetLifecycle.Build &&
-                        otherTarget.lifecycle.phase.order < lifecycle.phase.order
+                    // Find all tasks in earlier build phases
+                    tasks.filter { (otherName, otherTask) ->
+                        otherName != taskName &&
+                        otherTask.lifecycle is TargetLifecycle.Build &&
+                        otherTask.lifecycle.phase.order < lifecycle.phase.order
                     }.keys.toList()
                 }
                 is TargetLifecycle.Development -> {
@@ -86,42 +86,42 @@ class ProjectInferenceEngine(private val natureRegistry: NatureRegistry = Nature
                         DevelopmentLifecyclePhase.PROFILE,
                         DevelopmentLifecyclePhase.MONITOR -> {
                             // These need the artifacts to be bundled
-                            targets.filter { (_, otherTarget) ->
-                                otherTarget.lifecycle is TargetLifecycle.Build &&
-                                otherTarget.lifecycle.phase == BuildLifecyclePhase.PACKAGE
+                            tasks.filter { (_, otherTask) ->
+                                otherTask.lifecycle is TargetLifecycle.Build &&
+                                otherTask.lifecycle.phase == BuildLifecyclePhase.PACKAGE
                             }.keys.toList()
                         }
                         DevelopmentLifecyclePhase.WATCH,
                         DevelopmentLifecyclePhase.RELOAD -> {
                             // These need compilation
-                            targets.filter { (_, otherTarget) ->
-                                otherTarget.lifecycle is TargetLifecycle.Build &&
-                                otherTarget.lifecycle.phase == BuildLifecyclePhase.COMPILE
+                            tasks.filter { (_, otherTask) ->
+                                otherTask.lifecycle is TargetLifecycle.Build &&
+                                otherTask.lifecycle.phase == BuildLifecyclePhase.COMPILE
                             }.keys.toList()
                         }
                     }
                     
                     // Plus any earlier development phases
-                    val devDependencies = targets.filter { (otherName, otherTarget) ->
-                        otherName != targetName &&
-                        otherTarget.lifecycle is TargetLifecycle.Development &&
-                        otherTarget.lifecycle.phase.order < lifecycle.phase.order
+                    val devDependencies = tasks.filter { (otherName, otherTask) ->
+                        otherName != taskName &&
+                        otherTask.lifecycle is TargetLifecycle.Development &&
+                        otherTask.lifecycle.phase.order < lifecycle.phase.order
                     }.keys.toList()
                     
                     buildDependencies + devDependencies
                 }
                 is TargetLifecycle.Release -> {
-                    // Find all targets in earlier release phases
-                    targets.filter { (otherName, otherTarget) ->
-                        otherName != targetName &&
-                        otherTarget.lifecycle is TargetLifecycle.Release &&
-                        otherTarget.lifecycle.phase.order < lifecycle.phase.order
+                    // Find all tasks in earlier release phases
+                    tasks.filter { (otherName, otherTask) ->
+                        otherName != taskName &&
+                        otherTask.lifecycle is TargetLifecycle.Release &&
+                        otherTask.lifecycle.phase.order < lifecycle.phase.order
                     }.keys.toList()
                 }
             }
             
-            // Add dependencies to target configuration
-            targetDef.configuration.copy(dependsOn = dependencies)
+            // Add dependencies to task configuration
+            taskDef.configuration.copy(dependsOn = dependencies)
         }
     }
     
@@ -154,7 +154,7 @@ data class InferredProject(
     val name: String,
     val root: String,
     val natures: Set<String>,
-    val targets: Map<String, TargetConfiguration>,
+    val tasks: Map<String, TargetConfiguration>,
     val tags: List<String>
 ) {
     /**
@@ -165,7 +165,7 @@ data class InferredProject(
             name = name,
             root = root,
             projectType = "inferred",
-            targets = targets,
+            targets = tasks, // Keep targets in API for now
             tags = tags
         )
     }
@@ -177,14 +177,14 @@ data class InferredProject(
 private class NatureContextImpl(
     private val projectPath: Path,
     private val appliedNatures: Set<String>,
-    private val availableTargets: MutableSet<String> = mutableSetOf()
+    private val availableTasks: MutableSet<String> = mutableSetOf()
 ) : NatureContext {
     
     override fun getAppliedNatures(): Set<String> = appliedNatures
     
     override fun hasNature(natureId: String): Boolean = appliedNatures.contains(natureId)
     
-    override fun hasTarget(targetName: String): Boolean = availableTargets.contains(targetName)
+    override fun hasTask(taskName: String): Boolean = availableTasks.contains(taskName)
     
     override fun getProjectPath(): Path = projectPath
     

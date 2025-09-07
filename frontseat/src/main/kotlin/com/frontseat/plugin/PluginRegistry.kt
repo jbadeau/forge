@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentHashMap
 class PluginRegistry {
     private val logger = LoggerFactory.getLogger(PluginRegistry::class.java)
     
-    private val projectPlugins = ConcurrentHashMap<String, ProjectPlugin>()
     private val actionPlugins = ConcurrentHashMap<String, ActionPlugin>()
     private val executorPlugins = ConcurrentHashMap<String, Executor>()
     private val actionHandlers = ConcurrentHashMap<ActionType, ActionHandler>()
@@ -45,7 +44,7 @@ class PluginRegistry {
             }
         }
         
-        logger.info("Loaded ${projectPlugins.size} project plugins, ${actionPlugins.size} action plugins and ${executorPlugins.size} executor plugins")
+        logger.info("Loaded ${actionPlugins.size} action plugins and ${executorPlugins.size} executor plugins")
     }
     
     /**
@@ -63,14 +62,6 @@ class PluginRegistry {
      * Load plugins using ServiceLoader mechanism
      */
     private fun loadServiceLoaderPlugins() {
-        // Load project plugins
-        ServiceLoader.load(ProjectPlugin::class.java).forEach { plugin ->
-            try {
-                registerProjectPlugin(plugin)
-            } catch (e: Exception) {
-                logger.error("Failed to register project plugin: ${plugin.javaClass.name}", e)
-            }
-        }
         
         // Load action plugins
         ServiceLoader.load(ActionPlugin::class.java).forEach { plugin ->
@@ -200,22 +191,6 @@ class PluginRegistry {
         }
     }
     
-    /**
-     * Register a project plugin
-     */
-    fun registerProjectPlugin(plugin: ProjectPlugin, config: Map<String, Any> = emptyMap()) {
-        if (projectPlugins.containsKey(plugin.metadata.id)) {
-            logger.warn("Replacing existing project plugin: ${plugin.metadata.id}")
-        }
-        
-        // Initialize plugin with configuration
-        plugin.initialize()
-        
-        // Register the plugin
-        projectPlugins[plugin.metadata.id] = plugin
-        
-        logger.info("Registered project plugin: ${plugin.metadata.name} v${plugin.metadata.version} (${plugin.metadata.id})")
-    }
     
     /**
      * Register an action plugin
@@ -259,15 +234,6 @@ class PluginRegistry {
         logger.info("Registered executor plugin: ${plugin.metadata.name} v${plugin.metadata.version} (${plugin.metadata.id})")
     }
     
-    /**
-     * Get all registered project plugins
-     */
-    fun getProjectPlugins(): Collection<ProjectPlugin> = projectPlugins.values
-    
-    /**
-     * Get project plugin by ID
-     */
-    fun getProjectPlugin(id: String): ProjectPlugin? = projectPlugins[id]
     
     /**
      * Get all registered action plugins
@@ -344,14 +310,6 @@ class PluginRegistry {
     fun shutdown() {
         logger.info("Shutting down plugin registry")
         
-        // Shutdown project plugins
-        projectPlugins.values.forEach { plugin ->
-            try {
-                plugin.cleanup()
-            } catch (e: Exception) {
-                logger.error("Error shutting down project plugin: ${plugin.metadata.id}", e)
-            }
-        }
         
         // Shutdown action plugins
         actionPlugins.values.forEach { plugin ->
@@ -381,7 +339,6 @@ class PluginRegistry {
         }
         
         // Clear registries
-        projectPlugins.clear()
         actionPlugins.clear()
         executorPlugins.clear()
         actionHandlers.clear()

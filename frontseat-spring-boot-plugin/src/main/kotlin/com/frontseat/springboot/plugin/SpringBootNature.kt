@@ -21,14 +21,14 @@ class SpringBootNature : ProjectNature {
     }
     
     override fun createTasks(projectPath: Path, context: NatureContext): Map<String, NatureTargetDefinition> {
-        val targets = mutableMapOf<String, NatureTargetDefinition>()
+        val tasks = mutableMapOf<String, NatureTargetDefinition>()
         
-        // Only add serve target for Spring Boot applications (not libraries)
+        // Only add serve task for Spring Boot applications (not libraries)
         val projectInfo = SpringBootInference.inferProject(projectPath.toString())
         if (projectInfo?.category == SpringBootProjectCategory.APPLICATION) {
             
-            // Create serve target based on available build system
-            val serveTarget = when {
+            // Create serve task based on available build system
+            val serveTask = when {
                 context.hasNature("maven") -> {
                     TargetConfiguration(
                         executor = "maven",
@@ -59,14 +59,14 @@ class SpringBootNature : ProjectNature {
                 }
             }
             
-            targets["serve"] = NatureTargetDefinition(
-                configuration = serveTarget,
+            tasks["serve"] = NatureTargetDefinition(
+                configuration = serveTask,
                 lifecycle = TargetLifecycle.Development(DevelopmentLifecyclePhase.SERVE),
                 cacheable = false // Serving is not cacheable
             )
         }
         
-        return targets
+        return tasks
     }
     
     override fun createDependencies(projectPath: Path, context: NatureContext): List<ProjectDependency> {

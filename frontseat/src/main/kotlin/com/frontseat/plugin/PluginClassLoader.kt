@@ -18,33 +18,33 @@ class PluginClassLoader(
     private val logger = LoggerFactory.getLogger(PluginClassLoader::class.java)
     
     /**
-     * Load a ProjectPlugin from this JAR using ServiceLoader
+     * Load a FrontseatPlugin from this JAR using ServiceLoader
      */
-    fun loadPlugin(): ProjectPlugin {
+    fun loadPlugin(): FrontseatPlugin {
         logger.debug("Loading plugin from: $pluginJar")
         
         // Read service file directly from this JAR to avoid parent classloader pollution
         val plugins = loadPluginsFromJar()
         
         return when (plugins.size) {
-            0 -> throw PluginLoadException("No ProjectPlugin implementation found in $pluginJar")
+            0 -> throw PluginLoadException("No FrontseatPlugin implementation found in $pluginJar")
             1 -> {
                 val plugin = plugins.first()
-                logger.info("Loaded plugin: ${plugin.metadata.id}@${plugin.metadata.version}")
+                logger.info("Loaded plugin: ${plugin.id}@${plugin.version}")
                 plugin
             }
             else -> {
-                logger.warn("Multiple ProjectPlugin implementations found in $pluginJar, using first one")
+                logger.warn("Multiple FrontseatPlugin implementations found in $pluginJar, using first one")
                 val plugin = plugins.first()
-                logger.info("Loaded plugin: ${plugin.metadata.id}@${plugin.metadata.version}")
+                logger.info("Loaded plugin: ${plugin.id}@${plugin.version}")
                 plugin
             }
         }
     }
     
-    private fun loadPluginsFromJar(): List<ProjectPlugin> {
-        val plugins = mutableListOf<ProjectPlugin>()
-        val serviceResource = "META-INF/services/com.frontseat.plugin.ProjectPlugin"
+    private fun loadPluginsFromJar(): List<FrontseatPlugin> {
+        val plugins = mutableListOf<FrontseatPlugin>()
+        val serviceResource = "META-INF/services/com.frontseat.plugin.FrontseatPlugin"
         
         // Read the service file from this specific JAR
         val serviceUrl = findResource(serviceResource) 
@@ -57,7 +57,7 @@ class PluginClassLoader(
         classNames.forEach { className ->
             try {
                 val pluginClass = loadClass(className)
-                val plugin = pluginClass.getDeclaredConstructor().newInstance() as ProjectPlugin
+                val plugin = pluginClass.getDeclaredConstructor().newInstance() as FrontseatPlugin
                 plugins.add(plugin)
                 logger.debug("Loaded plugin class: $className")
             } catch (e: Exception) {
@@ -69,17 +69,17 @@ class PluginClassLoader(
     }
     
     /**
-     * Load all ProjectPlugins from this JAR
+     * Load all FrontseatPlugins from this JAR
      */
-    fun loadAllPlugins(): List<ProjectPlugin> {
+    fun loadAllPlugins(): List<FrontseatPlugin> {
         logger.debug("Loading all plugins from: $pluginJar")
         
-        val serviceLoader = ServiceLoader.load(ProjectPlugin::class.java, this)
+        val serviceLoader = ServiceLoader.load(FrontseatPlugin::class.java, this)
         val plugins = serviceLoader.toList()
         
         logger.info("Loaded ${plugins.size} plugin(s) from $pluginJar")
         plugins.forEach { plugin ->
-            logger.debug("  - ${plugin.metadata.id}@${plugin.metadata.version}")
+            logger.debug("  - ${plugin.id}@${plugin.version}")
         }
         
         return plugins

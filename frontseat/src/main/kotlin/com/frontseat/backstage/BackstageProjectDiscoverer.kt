@@ -157,23 +157,23 @@ class BackstageProjectDiscoverer {
         
         logger.info("Processing component: $projectName at $relativePath")
         
-        // Use the project inference engine to get natures and targets
+        // Use the project inference engine to get natures and tasks
         val inferredProject = projectInferenceEngine.inferProject(projectRoot)
         
-        val (natures, targets) = if (inferredProject != null) {
-            logger.debug("Inferred project: ${inferredProject.natures}, targets: ${inferredProject.targets.keys}")
+        val (natures, tasks) = if (inferredProject != null) {
+            logger.debug("Inferred project: ${inferredProject.natures}, tasks: ${inferredProject.tasks.keys}")
             
             // Apply manual nature overrides from annotations if present
             val natures = applyManualNatureOverrides(inferredProject.natures, component.metadata.annotations)
-            val targets = if (natures != inferredProject.natures) {
+            val tasks = if (natures != inferredProject.natures) {
                 // Re-infer with overridden natures
                 // TODO: Need to re-run inference with overridden natures
-                inferredProject.targets
+                inferredProject.tasks
             } else {
-                inferredProject.targets
+                inferredProject.tasks
             }
             
-            Pair(natures, targets)
+            Pair(natures, tasks)
         } else {
             logger.debug("No natures inferred for $projectName")
             Pair(emptySet<String>(), emptyMap<String, TargetConfiguration>())
@@ -201,7 +201,7 @@ class BackstageProjectDiscoverer {
         val projectConfig = ProjectConfiguration(
             root = relativePath,
             name = projectName,
-            targets = targets,
+            targets = tasks, // Keep API as targets for now
             tags = tags.toList()
         )
         

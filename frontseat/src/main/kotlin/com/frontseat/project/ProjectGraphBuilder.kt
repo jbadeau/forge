@@ -3,6 +3,7 @@ package com.frontseat.project
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.frontseat.backstage.BackstageProjectDiscoverer
 import com.frontseat.workspace.WorkspaceConfiguration
 import com.frontseat.plugin.api.ProjectConfiguration
 import com.frontseat.plugin.api.TargetConfiguration
@@ -16,7 +17,7 @@ class ProjectGraphBuilder(
     private val workspaceRoot: Path,
     private val plugins: List<DiscoveryPlugin> = emptyList(),
     private val enableInference: Boolean = true,
-    private val projectDiscoverer: ProjectDiscoverer = ProjectDiscoverer()
+    private val backstageDiscoverer: BackstageProjectDiscoverer = BackstageProjectDiscoverer()
 ) {
     private val logger = LoggerFactory.getLogger(ProjectGraphBuilder::class.java)
     private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
@@ -35,15 +36,12 @@ class ProjectGraphBuilder(
         // Discover projects via explicit project.json files
         projects.putAll(discoverExplicitProjects())
         
-        // Discover projects via inference plugins (package.json, etc.)
+        // Discover projects via Backstage catalog
         var inferenceResult: InferenceResult? = null
         if (enableInference) {
-            inferenceResult = projectDiscoverer.discoverProjects(
-                workspaceRoot, 
-                emptyMap()
-            )
+            inferenceResult = backstageDiscoverer.discoverProjects(workspaceRoot)
             projects.putAll(inferenceResult.projects)
-            logger.info("Inferred ${inferenceResult.projects.size} projects via inference plugins")
+            logger.info("Inferred ${inferenceResult.projects.size} projects via Backstage catalog")
         }
         
         // Discover projects via discovery plugins
