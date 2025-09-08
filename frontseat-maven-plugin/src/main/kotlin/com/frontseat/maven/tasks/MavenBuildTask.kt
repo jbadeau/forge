@@ -10,25 +10,38 @@ import com.frontseat.nature.BuildLifecyclePhase
 import java.nio.file.Path
 
 /**
- * Maven build task - compile and package code (runs mvn package)
+ * Maven build task - compile, package, and install to local repository (runs mvn install)
  */
 @Task(
     name = MavenTaskNames.BUILD,
     lifecycle = TargetLifecycle.Build::class,
     phase = BuildLifecyclePhase.BUILD
 )
-fun createMavenBuildTask(projectPath: Path): CommandTask {
+fun createMavenBuildTask(
+    projectPath: Path,
+    userOptions: Map<String, Any> = emptyMap()
+): CommandTask {
     return commandTask(MavenTaskNames.BUILD, TargetLifecycle.Build(BuildLifecyclePhase.BUILD)) {
-        description("Compile and package code")
-        command(MavenCommandBuilder.build().inProject(projectPath).withPhase("package").toCommandString())
-        workingDirectory(projectPath)
+        description("Compile, package, and install to local repository")
         
-        // Nx-like task configuration
-        inputs = listOf("pom.xml", "src/main/**")
-        outputs = listOf("target/classes/**", "target/*.jar", "target/*.war")
+        // Build only this project (-pl .) and install to local repo
+        val projectName = projectPath.fileName.toString()
+        command(MavenCommandBuilder.build()
+            .inProject(projectPath.parent) // Run from parent to use -pl
+            .withArg("-pl")
+            .withArg(projectName)
+            .withPhase("install")
+            .toCommandString())
+        workingDirectory(projectPath.parent)
+        
+        // Nx-like task configuration  
+        inputs = (userOptions["inputs"] as? List<String>) ?: listOf("pom.xml", "src/main/**")
+        outputs = (userOptions["outputs"] as? List<String>) ?: listOf("target/classes/**", "target/*.jar", "target/*.war")
         options = mapOf(
-            "phase" to "package"
-        )
-        cacheable(true) // Build is cacheable
+            "phase" to "install",
+            "project" to projectName
+        ) + userOptions
+        
+        cacheable((userOptions["cache"] as? Boolean) ?: true)
     }
 }

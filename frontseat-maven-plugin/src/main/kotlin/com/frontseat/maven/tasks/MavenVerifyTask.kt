@@ -20,14 +20,23 @@ import java.nio.file.Path
 fun createMavenVerifyTask(projectPath: Path): CommandTask {
     return commandTask(MavenTaskNames.VERIFY, TargetLifecycle.Build(BuildLifecyclePhase.VERIFY)) {
         description("Verify package integrity")
-        command(MavenCommandBuilder.build().inProject(projectPath).withPhase("verify").toCommandString())
-        workingDirectory(projectPath)
+        
+        // Build only this project (-pl .) for parallelization
+        val projectName = projectPath.fileName.toString()
+        command(MavenCommandBuilder.build()
+            .inProject(projectPath.parent) // Run from parent to use -pl
+            .withArg("-pl")
+            .withArg(projectName)
+            .withPhase("verify")
+            .toCommandString())
+        workingDirectory(projectPath.parent)
         
         // Nx-like task configuration
         inputs = listOf("pom.xml", "target/*.jar", "target/*.war")
         outputs = listOf("target/failsafe-reports/**")
         options = mapOf(
-            "phase" to "verify"
+            "phase" to "verify",
+            "project" to projectName
         )
         cacheable(true) // Verification is cacheable
     }

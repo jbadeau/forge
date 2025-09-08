@@ -109,12 +109,6 @@ class TaskGraphBuilder(
         allTasks: Map<String, Task>
     ): List<String> {
         return when {
-            // ^target - depends on same target in all dependencies of current project
-            depString.startsWith("^") -> {
-                val targetName = depString.substring(1)
-                resolveProjectDependencies(currentTask.project, targetName, allTasks)
-            }
-            
             // self:target - depends on specific target in same project
             depString.contains(":") -> {
                 val parts = depString.split(":")
@@ -133,18 +127,6 @@ class TaskGraphBuilder(
                 val taskId = "${currentTask.project}:$depString"
                 if (allTasks.containsKey(taskId)) listOf(taskId) else emptyList()
             }
-        }
-    }
-    
-    private fun resolveProjectDependencies(
-        projectName: String,
-        targetName: String,
-        allTasks: Map<String, Task>
-    ): List<String> {
-        val projectDeps = projectGraph.getDependencies(projectName)
-        return projectDeps.mapNotNull { dep ->
-            val taskId = "${dep.target}:$targetName"
-            if (allTasks.containsKey(taskId)) taskId else null
         }
     }
     

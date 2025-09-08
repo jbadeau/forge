@@ -20,14 +20,23 @@ import java.nio.file.Path
 fun createMavenPublishTask(projectPath: Path): CommandTask {
     return commandTask(MavenTaskNames.PUBLISH, TargetLifecycle.Release(ReleaseLifecyclePhase.PUBLISH)) {
         description("Deploy to repository")
-        command(MavenCommandBuilder.build().inProject(projectPath).withPhase("deploy").toCommandString())
-        workingDirectory(projectPath)
+        
+        // Build only this project (-pl .) for parallelization
+        val projectName = projectPath.fileName.toString()
+        command(MavenCommandBuilder.build()
+            .inProject(projectPath.parent) // Run from parent to use -pl
+            .withArg("-pl")
+            .withArg(projectName)
+            .withPhase("deploy")
+            .toCommandString())
+        workingDirectory(projectPath.parent)
         
         // Nx-like task configuration
         inputs = listOf("pom.xml", "target/*.jar", "target/*.war")
         outputs = listOf() // Publishing doesn't produce local outputs
         options = mapOf(
-            "phase" to "deploy"
+            "phase" to "deploy",
+            "project" to projectName
         )
         cacheable(false) // Publishing is not cacheable
     }
