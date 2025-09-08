@@ -34,8 +34,8 @@ fun createMavenBuildTask(
         workingDirectory(projectPath.parent)
         
         // Nx-like task configuration  
-        inputs = options.inputs
-        outputs = options.outputs
-        cacheable(options.cache)
+        inputs = listOf("pom.xml", "src/main/**")
+        outputs = listOf("target/classes/**", "target/*.jar", "target/*.war")
+        cacheable(true) // Build is cacheable
     }
 }

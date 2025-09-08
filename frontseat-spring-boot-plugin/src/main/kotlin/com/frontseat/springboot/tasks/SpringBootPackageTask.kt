@@ -85,8 +85,8 @@ fun createSpringBootPackageTask(
         workingDirectory(projectPath)
         
         // Nx-like task configuration
-        inputs = options.inputs
-        outputs = options.outputs
-        cacheable(options.cache)
+        inputs = listOf("pom.xml", "target/*.jar", "src/main/resources/**")
+        outputs = emptyList() // Image is stored in Docker
+        cacheable(false) // Image building typically not cached
     }
 }

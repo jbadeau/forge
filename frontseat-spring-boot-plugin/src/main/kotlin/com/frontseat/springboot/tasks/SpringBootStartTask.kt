@@ -67,8 +67,8 @@ fun createSpringBootStartTask(
         workingDirectory(projectPath)
         
         // Nx-like task configuration
-        inputs = options.inputs
-        outputs = options.outputs
-        cacheable(options.cache)
+        inputs = listOf("pom.xml", "src/main/**")
+        outputs = emptyList() // Dev server doesn't produce outputs
+        cacheable(false) // Dev server is not cacheable
     }
 }

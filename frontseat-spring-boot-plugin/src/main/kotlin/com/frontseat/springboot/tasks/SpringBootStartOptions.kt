@@ -9,10 +9,7 @@ data class SpringBootStartOptions(
     val debug: Boolean = false,
     val debugPort: Int = 5005,
     val jvmArgs: List<String> = emptyList(),
-    val args: List<String> = emptyList(),
-    val inputs: List<String> = listOf("pom.xml", "src/main/**"),
-    val outputs: List<String> = emptyList(), // Dev server doesn't produce outputs
-    val cache: Boolean = false // Dev server is not cacheable
+    val args: List<String> = emptyList()
 ) {
     companion object {
         fun fromMap(options: Map<String, Any>): SpringBootStartOptions {
@@ -22,11 +19,7 @@ data class SpringBootStartOptions(
                 debug = options["debug"] as? Boolean ?: false,
                 debugPort = options["debugPort"] as? Int ?: 5005,
                 jvmArgs = (options["jvmArgs"] as? List<*>)?.map { it.toString() } ?: emptyList(),
-                args = (options["args"] as? List<*>)?.map { it.toString() } ?: emptyList(),
-                inputs = (options["inputs"] as? List<*>)?.map { it.toString() } 
-                    ?: listOf("pom.xml", "src/main/**"),
-                outputs = (options["outputs"] as? List<*>)?.map { it.toString() } ?: emptyList(),
-                cache = options["cache"] as? Boolean ?: false
+                args = (options["args"] as? List<*>)?.map { it.toString() } ?: emptyList()
             )
         }
         

@@ -1,6 +1,4 @@
-# Plugin configuration for Forge
 
-# PROJECT PLUGINS - Discover and configure projects from files
 projectPlugins:
   - id: com.frontseat.maven
     enabled: true
