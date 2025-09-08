@@ -23,8 +23,10 @@ class MavenNature : ProjectNature {
     }
     
     override fun createTasks(projectPath: Path, context: NatureContext): Map<String, CommandTask> {
+        val buildOptions = MavenBuildOptions.defaults(projectPath.fileName.toString())
+        
         return mapOf(
-            MavenTaskNames.BUILD to createMavenBuildTask(projectPath),
+            MavenTaskNames.BUILD to createMavenBuildTask(projectPath, buildOptions),
             MavenTaskNames.TEST to createMavenTestTask(projectPath),
             MavenTaskNames.VERIFY to createMavenVerifyTask(projectPath),
             MavenTaskNames.PUBLISH to createMavenPublishTask(projectPath)

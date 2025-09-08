@@ -19,29 +19,23 @@ import java.nio.file.Path
 )
 fun createMavenBuildTask(
     projectPath: Path,
-    userOptions: Map<String, Any> = emptyMap()
+    options: MavenBuildOptions
 ): CommandTask {
     return commandTask(MavenTaskNames.BUILD, TargetLifecycle.Build(BuildLifecyclePhase.BUILD)) {
         description("Compile, package, and install to local repository")
         
         // Build only this project (-pl .) and install to local repo
-        val projectName = projectPath.fileName.toString()
         command(MavenCommandBuilder.build()
             .inProject(projectPath.parent) // Run from parent to use -pl
             .withArg("-pl")
-            .withArg(projectName)
-            .withPhase("install")
+            .withArg(options.project)
+            .withPhase(options.phase)
             .toCommandString())
         workingDirectory(projectPath.parent)
         
         // Nx-like task configuration  
-        inputs = (userOptions["inputs"] as? List<String>) ?: listOf("pom.xml", "src/main/**")
-        outputs = (userOptions["outputs"] as? List<String>) ?: listOf("target/classes/**", "target/*.jar", "target/*.war")
-        options = mapOf(
-            "phase" to "install",
-            "project" to projectName
-        ) + userOptions
-        
-        cacheable((userOptions["cache"] as? Boolean) ?: true)
+        inputs = options.inputs
+        outputs = options.outputs
+        cacheable(options.cache)
     }
 }
