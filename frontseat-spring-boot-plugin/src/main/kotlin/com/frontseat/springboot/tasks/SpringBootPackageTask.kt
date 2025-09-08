@@ -30,73 +30,53 @@ import java.nio.file.Path
 )
 fun createSpringBootPackageTask(
     projectPath: Path,
-    userOptions: Map<String, Any> = emptyMap()
+    options: SpringBootPackageOptions
 ): CommandTask {
-    // Default options
-    val defaultOptions = mapOf(
-        "imageName" to projectPath.fileName.toString(),
-        "imageTag" to "latest",
-        "builder" to "paketobuildpacks/builder:base",
-        "publish" to false
-    )
-    
-    // Merge user options with defaults
-    val finalOptions = defaultOptions + userOptions
-    
     // Build the Maven command for spring-boot:build-image
     val builder = MavenCommandBuilder.build()
         .inProject(projectPath)
         .withGoal("spring-boot:build-image")
     
     // Set image name
-    val imageName = finalOptions["imageName"]?.toString()
-    val imageTag = finalOptions["imageTag"]?.toString()
-    if (!imageName.isNullOrEmpty()) {
-        val fullImageName = if (!imageTag.isNullOrEmpty()) {
-            "$imageName:$imageTag"
-        } else {
-            imageName
-        }
+    if (options.imageName.isNotEmpty()) {
+        val fullImageName = "${options.imageName}:${options.imageTag}"
         builder.withProperty("spring-boot.build-image.imageName", fullImageName)
     }
     
     // Set builder
-    val builderImage = finalOptions["builder"]?.toString()
-    if (!builderImage.isNullOrEmpty()) {
-        builder.withProperty("spring-boot.build-image.builder", builderImage)
-    }
+    builder.withProperty("spring-boot.build-image.builder", options.builder)
     
     // Set run image if specified
-    (finalOptions["runImage"] as? String)?.let { runImage ->
+    options.runImage?.let { runImage ->
         builder.withProperty("spring-boot.build-image.runImage", runImage)
     }
     
     // Add environment variables
-    (finalOptions["env"] as? Map<*, *>)?.forEach { (key, value) ->
-        builder.withProperty("spring-boot.build-image.env.$key", value.toString())
+    options.env.forEach { (key, value) ->
+        builder.withProperty("spring-boot.build-image.env.$key", value)
     }
     
     // Handle publishing
-    if (finalOptions["publish"] == true) {
+    if (options.publish) {
         builder.withProperty("spring-boot.build-image.publish", "true")
         
         // Set registry if specified
-        (finalOptions["registry"] as? String)?.let { registry ->
+        options.registry?.let { registry ->
             builder.withProperty("docker.registry", registry)
         }
         
         // Set registry credentials (should use secrets in production!)
-        (finalOptions["registryUsername"] as? String)?.let { username ->
+        options.registryUsername?.let { username ->
             builder.withProperty("docker.registry.username", username)
         }
-        (finalOptions["registryPassword"] as? String)?.let { password ->
+        options.registryPassword?.let { password ->
             builder.withProperty("docker.registry.password", password)
         }
     }
     
     // Add any additional args
-    (finalOptions["args"] as? List<*>)?.forEach { arg ->
-        builder.withArg(arg.toString())
+    options.args.forEach { arg ->
+        builder.withArg(arg)
     }
     
     return commandTask(SpringBootTaskNames.PACKAGE, TargetLifecycle.Build(BuildLifecyclePhase.PACKAGE)) {
@@ -105,15 +85,8 @@ fun createSpringBootPackageTask(
         workingDirectory(projectPath)
         
         // Nx-like task configuration
-        inputs = (userOptions["inputs"] as? List<String>) ?: listOf(
-            "pom.xml",
-            "target/*.jar",
-            "src/main/resources/**"
-        )
-        outputs = (userOptions["outputs"] as? List<String>) ?: emptyList() // Image is stored in Docker
-        options = finalOptions
-        
-        
-        cacheable((userOptions["cache"] as? Boolean) ?: false) // Image building typically not cached
+        inputs = options.inputs
+        outputs = options.outputs
+        cacheable(options.cache)
     }
 }

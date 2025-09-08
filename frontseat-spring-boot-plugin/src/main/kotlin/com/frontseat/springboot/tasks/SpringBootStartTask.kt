@@ -28,56 +28,37 @@ import java.nio.file.Path
 )
 fun createSpringBootStartTask(
     projectPath: Path,
-    userOptions: Map<String, Any> = emptyMap()
+    options: SpringBootStartOptions
 ): CommandTask {
-    // Default options
-    val defaultOptions = mapOf(
-        "profiles" to "dev",
-        "port" to 8080,
-        "debug" to false,
-        "debugPort" to 5005
-    )
-    
-    // Merge user options with defaults
-    val finalOptions = defaultOptions + userOptions
-    
     // Build the Maven command for spring-boot:run
     val builder = MavenCommandBuilder.build()
         .inProject(projectPath)
         .withGoal("spring-boot:run")
     
     // Set active profiles
-    val profiles = finalOptions["profiles"]?.toString()
-    if (!profiles.isNullOrEmpty()) {
-        builder.withProperty("spring-boot.run.profiles", profiles)
+    if (options.profiles.isNotEmpty()) {
+        builder.withProperty("spring-boot.run.profiles", options.profiles)
     }
     
     // Set server port
-    val port = finalOptions["port"]
-    builder.withProperty("spring-boot.run.arguments", "--server.port=$port")
+    builder.withProperty("spring-boot.run.arguments", "--server.port=${options.port}")
     
     // Enable debug if requested
-    if (finalOptions["debug"] == true) {
-        val debugPort = finalOptions["debugPort"]
+    if (options.debug) {
         builder.withProperty(
             "spring-boot.run.jvmArguments",
-            "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:$debugPort"
+            "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:${options.debugPort}"
         )
     }
     
     // Add custom JVM args
-    (finalOptions["jvmArgs"] as? List<*>)?.forEach { arg ->
-        builder.withProperty("spring-boot.run.jvmArguments", arg.toString())
-    }
-    
-    // Add custom main class if specified
-    (finalOptions["mainClass"] as? String)?.let { mainClass ->
-        builder.withProperty("spring-boot.run.mainClass", mainClass)
+    options.jvmArgs.forEach { arg ->
+        builder.withProperty("spring-boot.run.jvmArguments", arg)
     }
     
     // Add any additional args
-    (finalOptions["args"] as? List<*>)?.forEach { arg ->
-        builder.withArg(arg.toString())
+    options.args.forEach { arg ->
+        builder.withArg(arg)
     }
     
     return commandTask(SpringBootTaskNames.START, TargetLifecycle.Development(DevelopmentLifecyclePhase.START)) {
@@ -86,15 +67,8 @@ fun createSpringBootStartTask(
         workingDirectory(projectPath)
         
         // Nx-like task configuration
-        inputs = (userOptions["inputs"] as? List<String>) ?: listOf(
-            "pom.xml",
-            "src/main/**",
-            "src/main/resources/**"
-        )
-        outputs = (userOptions["outputs"] as? List<String>) ?: emptyList()
-        options = finalOptions
-        
-        cacheable(false) // Starting is never cacheable
-        readyWhen((userOptions["readyWhen"] as? String) ?: "Started") // Wait for Spring Boot startup
+        inputs = options.inputs
+        outputs = options.outputs
+        cacheable(options.cache)
     }
 }

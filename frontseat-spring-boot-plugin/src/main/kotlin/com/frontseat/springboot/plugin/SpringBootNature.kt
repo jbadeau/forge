@@ -32,10 +32,12 @@ class SpringBootNature : ProjectNature {
         // Check if Maven nature is available for Spring Boot Maven plugin tasks
         if (context.hasNature(MavenNatureIds.MAVEN)) {
             // Spring Boot development start task (uses spring-boot:run)
-            tasks[SpringBootTaskNames.START] = createSpringBootStartTask(projectPath)
+            val startOptions = SpringBootStartOptions.defaults()
+            tasks[SpringBootTaskNames.START] = createSpringBootStartTask(projectPath, startOptions)
             
             // Build container image using Cloud Native Buildpacks
-            tasks[SpringBootTaskNames.PACKAGE] = createSpringBootPackageTask(projectPath)
+            val packageOptions = SpringBootPackageOptions.defaults(projectPath.fileName.toString())
+            tasks[SpringBootTaskNames.PACKAGE] = createSpringBootPackageTask(projectPath, packageOptions)
         } else {
             logger.debug("SpringBoot nature found but no supported build system (maven) available for project: $projectPath")
         }
