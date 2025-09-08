@@ -1,8 +1,8 @@
 package com.frontseat.task
 
 import com.frontseat.project.ProjectGraph
-import com.frontseat.plugin.api.ProjectConfiguration
-import com.frontseat.plugin.api.TargetConfiguration
+import com.frontseat.project.ProjectConfiguration
+import com.frontseat.project.TargetConfiguration
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.util.*

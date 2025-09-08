@@ -9,9 +9,9 @@ import com.frontseat.task.TaskGraphBuilder
 import com.frontseat.task.Task
 import com.frontseat.task.TaskId
 import com.frontseat.task.TaskExecutionPlan
-import com.frontseat.plugin.PluginManager
-import com.frontseat.nature.NatureRegistry
-import com.frontseat.nature.ProjectNature
+import com.frontseat.executor.plugins.PluginManager
+import com.frontseat.project.nature.NatureRegistry
+import com.frontseat.project.nature.Nature
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists

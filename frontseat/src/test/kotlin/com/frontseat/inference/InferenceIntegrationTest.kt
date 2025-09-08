@@ -12,7 +12,7 @@ class InferenceIntegrationTest {
     @Test
     fun `should not discover projects without registered plugins`() {
         // Given a workspace with package.json files but no registered plugins
-        val natureRegistry = com.frontseat.nature.NatureRegistry()
+        val natureRegistry = com.frontseat.project.nature.NatureRegistry()
         val graphBuilder = ProjectGraphBuilder(testWorkspace, emptyList(), true, natureRegistry)
         
         // When discovering projects
@@ -25,7 +25,7 @@ class InferenceIntegrationTest {
     @Test
     fun `should not discover projects when inference is disabled`() {
         // Given inference is disabled
-        val natureRegistry = com.frontseat.nature.NatureRegistry()
+        val natureRegistry = com.frontseat.project.nature.NatureRegistry()
         val graphBuilder = ProjectGraphBuilder(testWorkspace, emptyList(), false, natureRegistry)
         
         // When discovering projects

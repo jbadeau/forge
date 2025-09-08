@@ -1,8 +1,6 @@
 package com.frontseat.project
 
-import com.frontseat.plugin.api.ProjectConfiguration
-import com.frontseat.plugin.api.DependencyType
-
+import com.frontseat.project.ProjectConfiguration
 import java.nio.file.Path
 
 data class ProjectGraph(

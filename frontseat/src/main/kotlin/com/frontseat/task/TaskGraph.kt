@@ -1,7 +1,7 @@
 package com.frontseat.task
 
 import com.frontseat.project.ProjectGraph
-import com.frontseat.plugin.api.TargetConfiguration
+import com.frontseat.project.TargetConfiguration
 import java.time.Instant
 
 /**

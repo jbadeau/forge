@@ -3,12 +3,13 @@ package com.frontseat.project
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.frontseat.backstage.BackstageProjectDiscoverer
-import com.frontseat.nature.NatureRegistry
+import com.frontseat.project.backstage.BackstageProjectDiscoverer
+import com.frontseat.project.nature.NatureRegistry
 import com.frontseat.workspace.WorkspaceConfiguration
-import com.frontseat.plugin.api.ProjectConfiguration
-import com.frontseat.plugin.api.TargetConfiguration
-import com.frontseat.plugin.api.InferenceResult
+import com.frontseat.project.ProjectConfiguration
+import com.frontseat.project.TargetConfiguration
+import com.frontseat.project.nature.InferenceResult
+import com.frontseat.project.nature.DependencyType as NatureDependencyType
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -163,7 +164,10 @@ class ProjectGraphBuilder(
         // Add inferred dependencies from plugin inference
         inferenceResult?.dependencies?.forEach { rawDep ->
             if (projects.containsKey(rawDep.source) && projects.containsKey(rawDep.target)) {
-                val dependencyType = rawDep.type
+                val dependencyType = when (rawDep.type) {
+                    NatureDependencyType.STATIC -> DependencyType.STATIC
+                    NatureDependencyType.IMPLICIT -> DependencyType.IMPLICIT
+                }
                 
                 dependencies[rawDep.source]?.add(
                     ProjectGraphDependency(
