@@ -1,6 +1,5 @@
 package com.frontseat.springboot.tasks
 
-import com.frontseat.annotation.Task
 import com.frontseat.command.CommandTask
 import com.frontseat.command.commandTask
 import com.frontseat.maven.commons.MavenCommandBuilder
@@ -21,11 +20,6 @@ import java.nio.file.Path
  * - args: Additional application arguments
  * - mainClass: Main class to run (auto-detected by default)
  */
-@Task(
-    name = SpringBootTaskNames.START,
-    lifecycle = TargetLifecycle.Development::class,
-    phase = DevelopmentLifecyclePhase.START
-)
 fun createSpringBootStartTask(
     projectPath: Path,
     options: SpringBootStartOptions

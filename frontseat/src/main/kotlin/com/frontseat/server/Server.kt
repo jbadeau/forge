@@ -1,9 +1,8 @@
-package com.frontseat.client.daemon
+package com.frontseat.server
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.frontseat.project.ProjectGraphBuilder
-import com.frontseat.client.protocol.*
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.io.*
@@ -16,8 +15,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Modern JSON-RPC 2.0 server with LSP-style protocol.
  * Provides foundation for action graph execution and multi-client support.
  */
-class JsonRpcServer {
-    private val logger = LoggerFactory.getLogger(JsonRpcServer::class.java)
+class Server {
+    private val logger = LoggerFactory.getLogger(Server::class.java)
     private val mapper = jacksonObjectMapper()
     private val running = AtomicBoolean(false)
     private val initialized = AtomicBoolean(false)

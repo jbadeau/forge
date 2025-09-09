@@ -1,4 +1,4 @@
-package com.frontseat.executor.plugins
+package com.frontseat.plugin
 
 /**
  * Specification for a plugin to be loaded

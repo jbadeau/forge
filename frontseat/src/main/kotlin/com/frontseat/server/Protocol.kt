@@ -1,4 +1,4 @@
-package com.frontseat.client.protocol
+package com.frontseat.server
 
 import com.fasterxml.jackson.databind.JsonNode
 

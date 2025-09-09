@@ -1,6 +1,5 @@
-package com.frontseat.executor.plugins
+package com.frontseat.plugin
 
-import com.frontseat.executor.plugins.Plugin
 import com.frontseat.workspace.Workspace
 import kotlin.reflect.full.findAnnotation
 

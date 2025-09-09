@@ -1,15 +1,15 @@
-package com.frontseat.client.daemon
+package com.frontseat.server
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import kotlin.system.exitProcess
 
-object ForgeDaemon {
-    fun startDaemon(args: Array<String>) {
-        val logger = LoggerFactory.getLogger("ForgeDaemon")
+object Daemon {
+    fun start(args: Array<String>) {
+        val logger = LoggerFactory.getLogger("FrontseatServer")
         
         try {
-            val server = JsonRpcServer()
+            val server = Server()
             
             // Add shutdown hook
             Runtime.getRuntime().addShutdownHook(Thread {
@@ -29,5 +29,5 @@ object ForgeDaemon {
 }
 
 fun main(args: Array<String>) {
-    ForgeDaemon.startDaemon(args)
+    Daemon.start(args)
 }

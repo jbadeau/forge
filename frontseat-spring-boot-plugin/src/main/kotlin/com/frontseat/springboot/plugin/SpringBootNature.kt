@@ -1,26 +1,27 @@
 package com.frontseat.springboot.plugin
 
-import com.frontseat.annotation.AutoRegister
-import com.frontseat.annotation.Nature
+import com.frontseat.project.nature.NatureInfo
 import com.frontseat.maven.commons.MavenNatureIds
 import com.frontseat.springboot.commons.SpringBootUtils
 import com.frontseat.springboot.commons.SpringBootNatureIds
 import com.frontseat.springboot.commons.SpringBootTaskNames
 import com.frontseat.springboot.tasks.*
-import com.frontseat.nature.*
-import com.frontseat.command.CommandTask
+import com.frontseat.project.nature.Nature
+import com.frontseat.project.nature.NatureContext
+import com.frontseat.project.nature.NatureLayers
+import com.frontseat.project.nature.ProjectDependency
+import com.frontseat.task.CommandTask
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
 /**
  * Spring Boot project nature that provides Spring Boot specific capabilities
  */
-@Nature(id = SpringBootNatureIds.SPRING_BOOT, layer = NatureLayers.FRAMEWORKS)
-@AutoRegister
-class SpringBootNature : ProjectNature {
+@NatureInfo(id = SpringBootNatureIds.SPRING_BOOT, layer = NatureLayers.FRAMEWORKS)
+class SpringBootNature : Nature {
     private val logger = LoggerFactory.getLogger(SpringBootNature::class.java)
     
-    // No need to override id or layer - they come from @Nature annotation!
+    // No need to override id or layer - they come from @NatureInfo annotation!
     
     override fun isApplicable(projectPath: Path, context: NatureContext?): Boolean {
         return SpringBootUtils.isSpringBootProject(projectPath)

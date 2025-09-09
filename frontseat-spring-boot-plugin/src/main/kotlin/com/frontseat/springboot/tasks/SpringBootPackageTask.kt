@@ -1,6 +1,5 @@
 package com.frontseat.springboot.tasks
 
-import com.frontseat.annotation.Task
 import com.frontseat.command.CommandTask
 import com.frontseat.command.commandTask
 import com.frontseat.maven.commons.MavenCommandBuilder
@@ -23,11 +22,6 @@ import java.nio.file.Path
  * - registryUsername: Registry username
  * - registryPassword: Registry password (should use secrets!)
  */
-@Task(
-    name = SpringBootTaskNames.PACKAGE,
-    lifecycle = TargetLifecycle.Build::class,
-    phase = BuildLifecyclePhase.PACKAGE
-)
 fun createSpringBootPackageTask(
     projectPath: Path,
     options: SpringBootPackageOptions

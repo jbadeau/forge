@@ -1,8 +1,8 @@
 package com.frontseat.maven.plugin
 
-import com.frontseat.annotation.Plugin
+import com.frontseat.executor.plugins.Plugin
 import com.frontseat.maven.commons.MavenNatureIds
-import com.frontseat.plugin.FrontseatPlugin
+import com.frontseat.executor.plugins.FrontseatPlugin
 import com.frontseat.workspace.Workspace
 
 /**
@@ -11,5 +11,4 @@ import com.frontseat.workspace.Workspace
 @Plugin(id = MavenNatureIds.MAVEN, name = "Maven Plugin")
 class MavenPlugin : FrontseatPlugin {
     // No need to override id, name, or version anymore!
-    // No need for manual registration if MavenNature has @AutoRegister
 }

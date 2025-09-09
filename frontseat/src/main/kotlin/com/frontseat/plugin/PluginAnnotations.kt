@@ -1,4 +1,4 @@
-package com.frontseat.executor.plugins
+package com.frontseat.plugin
 
 /**
  * Mark a plugin class for automatic discovery

@@ -1,22 +1,22 @@
 package com.frontseat.maven.plugin
 
-import com.frontseat.annotation.AutoRegister
-import com.frontseat.annotation.Nature
+import com.frontseat.project.nature.NatureInfo
 import com.frontseat.maven.commons.MavenUtils
 import com.frontseat.maven.commons.MavenNatureIds
 import com.frontseat.maven.commons.MavenTaskNames
 import com.frontseat.maven.tasks.*
-import com.frontseat.nature.*
-import com.frontseat.command.CommandTask
+import com.frontseat.project.nature.Nature
+import com.frontseat.project.nature.NatureContext
+import com.frontseat.project.nature.NatureLayers
+import com.frontseat.task.CommandTask
 import java.nio.file.Path
 
 /**
  * Maven project nature that provides Maven build system capabilities
  */
-@Nature(id = MavenNatureIds.MAVEN, layer = NatureLayers.BUILD_SYSTEMS)
-@AutoRegister
-class MavenNature : ProjectNature {
-    // No need to override id or layer - they come from @Nature annotation!
+@NatureInfo(id = MavenNatureIds.MAVEN, layer = NatureLayers.BUILD_SYSTEMS)
+class MavenNature : Nature {
+    // No need to override id or layer - they come from @NatureInfo annotation!
     
     override fun isApplicable(projectPath: Path, context: NatureContext?): Boolean {
         return MavenUtils.isMavenProject(projectPath)

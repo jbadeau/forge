@@ -1,6 +1,5 @@
 package com.frontseat.maven.tasks
 
-import com.frontseat.annotation.Task
 import com.frontseat.command.CommandTask
 import com.frontseat.command.commandTask
 import com.frontseat.maven.commons.MavenCommandBuilder
@@ -12,11 +11,6 @@ import java.nio.file.Path
 /**
  * Maven verify task - verify package integrity
  */
-@Task(
-    name = MavenTaskNames.VERIFY,
-    lifecycle = TargetLifecycle.Build::class,
-    phase = BuildLifecyclePhase.VERIFY
-)
 fun createMavenVerifyTask(projectPath: Path): CommandTask {
     return commandTask(MavenTaskNames.VERIFY, TargetLifecycle.Build(BuildLifecyclePhase.VERIFY)) {
         description("Verify package integrity")

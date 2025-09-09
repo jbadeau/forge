@@ -1,6 +1,5 @@
 package com.frontseat.maven.tasks
 
-import com.frontseat.annotation.Task
 import com.frontseat.command.CommandTask
 import com.frontseat.command.commandTask
 import com.frontseat.maven.commons.MavenCommandBuilder
@@ -12,11 +11,6 @@ import java.nio.file.Path
 /**
  * Maven publish task - deploy to repository
  */
-@Task(
-    name = MavenTaskNames.PUBLISH,
-    lifecycle = TargetLifecycle.Release::class,
-    phase = ReleaseLifecyclePhase.PUBLISH
-)
 fun createMavenPublishTask(projectPath: Path): CommandTask {
     return commandTask(MavenTaskNames.PUBLISH, TargetLifecycle.Release(ReleaseLifecyclePhase.PUBLISH)) {
         description("Deploy to repository")

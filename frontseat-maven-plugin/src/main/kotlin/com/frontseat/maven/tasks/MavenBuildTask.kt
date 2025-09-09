@@ -1,6 +1,5 @@
 package com.frontseat.maven.tasks
 
-import com.frontseat.annotation.Task
 import com.frontseat.command.CommandTask
 import com.frontseat.command.commandTask
 import com.frontseat.maven.commons.MavenCommandBuilder
@@ -12,11 +11,6 @@ import java.nio.file.Path
 /**
  * Maven build task - compile, package, and install to local repository (runs mvn install)
  */
-@Task(
-    name = MavenTaskNames.BUILD,
-    lifecycle = TargetLifecycle.Build::class,
-    phase = BuildLifecyclePhase.BUILD
-)
 fun createMavenBuildTask(
     projectPath: Path,
     options: MavenBuildOptions

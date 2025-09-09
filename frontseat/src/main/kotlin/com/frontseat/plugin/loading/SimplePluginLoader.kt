@@ -1,9 +1,9 @@
-package com.frontseat.executor.plugins.loading
+package com.frontseat.plugin.loading
 
 import com.frontseat.project.nature.Nature as NatureInterface  
 import com.frontseat.project.nature.NatureInfo
-import com.frontseat.executor.plugins.Plugin
-import com.frontseat.executor.plugins.FrontseatPlugin
+import com.frontseat.plugin.Plugin
+import com.frontseat.plugin.FrontseatPlugin
 import com.frontseat.workspace.Workspace
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners

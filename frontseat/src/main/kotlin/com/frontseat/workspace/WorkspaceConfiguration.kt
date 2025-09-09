@@ -3,7 +3,7 @@ package com.frontseat.workspace
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.frontseat.executor.plugins.PluginSpec
+import com.frontseat.plugin.PluginSpec
 import com.frontseat.project.TargetConfiguration
 import java.nio.file.Path
 import kotlin.io.path.readText

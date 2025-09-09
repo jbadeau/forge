@@ -1,8 +1,8 @@
-package com.frontseat.executor.plugins
+package com.frontseat.plugin.loading
 
+import com.frontseat.plugin.FrontseatPlugin
 import org.slf4j.LoggerFactory
 import java.io.Closeable
-import java.net.URL
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.util.ServiceLoader

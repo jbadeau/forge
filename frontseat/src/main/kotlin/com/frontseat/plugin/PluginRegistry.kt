@@ -1,4 +1,4 @@
-package com.frontseat.executor.plugins
+package com.frontseat.plugin
 
 import org.slf4j.LoggerFactory
 import java.net.URLClassLoader

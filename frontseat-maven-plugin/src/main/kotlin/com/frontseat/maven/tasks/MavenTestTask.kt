@@ -1,6 +1,5 @@
 package com.frontseat.maven.tasks
 
-import com.frontseat.annotation.Task
 import com.frontseat.command.CommandTask
 import com.frontseat.command.commandTask
 import com.frontseat.maven.commons.MavenCommandBuilder
@@ -12,11 +11,6 @@ import java.nio.file.Path
 /**
  * Maven test task - run tests
  */
-@Task(
-    name = MavenTaskNames.TEST,
-    lifecycle = TargetLifecycle.Build::class,
-    phase = BuildLifecyclePhase.TEST
-)
 fun createMavenTestTask(projectPath: Path): CommandTask {
     return commandTask(MavenTaskNames.TEST, TargetLifecycle.Build(BuildLifecyclePhase.TEST)) {
         description("Run tests")

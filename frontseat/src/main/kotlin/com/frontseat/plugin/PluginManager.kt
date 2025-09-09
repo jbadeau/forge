@@ -1,5 +1,6 @@
-package com.frontseat.executor.plugins
+package com.frontseat.plugin
 
+import com.frontseat.plugin.loading.PluginClassLoader
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.ServiceLoader
